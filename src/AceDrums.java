@@ -8,6 +8,9 @@
  package com.adarwin.edrum;
 
  import java.awt.Dimension;
+ import java.awt.event.ActionListener;
+ import java.awt.event.ActionEvent;
+ import java.util.ArrayList;
  import java.util.logging.Logger;
  import javax.swing.JPanel;
  import javax.swing.JFrame;
@@ -27,8 +30,9 @@
      private static JMenuBar menuBar;
      private static JMenu fileMenu;
      private static JMenu editMenu;
-     private static JPanel mainContentPanel;
+     private static DrumPanel drumPanel;
      private static JToolBar toolbar;
+     private static ArrayList<DrumWidget> drumWidgets;
      private static boolean DEBUG = true;
 
      public static void main(String[] args) {
@@ -53,7 +57,7 @@
      }
 
      private static void buildContainers() {
-         mainContentPanel = new JPanel();
+         drumPanel = new DrumPanel();
          frame.setSize(new Dimension(startingWidth, startingHeight));
          frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
      }
@@ -61,6 +65,7 @@
      private static void buildComponents() {
          buildMenuBar();
          buildToolBar();
+         buildDrumWidgets();
      }
 
      private static void buildMenuBar() {
@@ -73,6 +78,11 @@
 
          // Build file menu
          JMenuItem menuItem = new JMenuItem("Exit");
+         menuItem.addActionListener(new ActionListener() {
+             public void actionPerformed(ActionEvent e) {
+                 System.exit(0);
+             }
+         });
          fileMenu.add(menuItem);
 
          // Build set menu
@@ -103,12 +113,19 @@
          toolbar.add(currentToolbarButton);
      }
 
+     private static void buildDrumWidgets() {
+         drumWidgets = new ArrayList<DrumWidget>();
+         drumWidgets.add(new KickDrumWidget());
+     }
+
      private static void addComponentsToContainers() {
          // Assumes all components and containers have been built and
          // configured
          frame.setJMenuBar(menuBar);
-         frame.setContentPane(mainContentPanel);
-         mainContentPanel.add(toolbar);
+         frame.setContentPane(drumPanel);
+         //mainContentPanel.add(toolbar);
+         //drumPanel.add(new KickDrumWidget());
+         drumPanel.addDrumWidget(new KickDrumWidget());
      }
 
      private static void addContainersToFrame() {
@@ -119,4 +136,5 @@
          frame.setVisible(true);
      }
  }
+
 
