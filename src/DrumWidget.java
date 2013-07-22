@@ -16,19 +16,19 @@
  import javax.swing.JComponent;
  import javax.swing.JPopupMenu;
  import javax.swing.JMenuItem;
+ import java.util.logging.Logger;
+ import java.util.logging.Level;
 
  abstract class DrumWidget extends JComponent {
+     private static final Logger logger = Logger.getLogger(DrumWidget.class.getName());
      private Point coordinates;
-     //private int height, width;
      JPopupMenu rightClickMenu;
+     int xOffsetFromCenter, yOffsetFromCenter;
 
      DrumWidget() {
          super();
          buildRightClickMenu();
          setComponentPopupMenu(rightClickMenu);
-         System.out.println("Set size to 50, 50");
-         setMinimumSize(new Dimension(10, 10));
-         setPreferredSize(new Dimension(50, 50));
          addMouseListener(new MouseListener() {
              public void mouseClicked(MouseEvent e) {
                  int button = e.getButton();
@@ -46,7 +46,7 @@
      }
      void buildRightClickMenu() {
          rightClickMenu = new JPopupMenu();
-         rightClickMenu.add(new JMenuItem("test"));
+         //rightClickMenu.add(new JMenuItem("test"));
      }
      void showRightClickMenu(int x, int y) {
          rightClickMenu.show(this, x, y);
@@ -58,8 +58,10 @@
 
      protected void paintComponent(Graphics g) {
          //super.paintComponent(g);
-         g.setColor(Color.black);
+         //g.setColor(Color.black);
          g.fillOval(0, 0, getWidth(), getHeight());
      }
+     int getXOffsetFromCenter() { return xOffsetFromCenter; }
+     int getYOffsetFromCenter() { return yOffsetFromCenter; }
  }
 

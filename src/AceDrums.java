@@ -12,6 +12,7 @@
  import java.awt.event.ActionEvent;
  import java.util.ArrayList;
  import java.util.logging.Logger;
+ import java.util.logging.Level;
  import javax.swing.JPanel;
  import javax.swing.JFrame;
  import javax.swing.JButton;
@@ -23,7 +24,7 @@
 
  public class AceDrums {
 
-     private static final Logger LOGGER = Logger.getLogger(AceDrums.class.getName());
+     private static final Logger logger = Logger.getLogger(AceDrums.class.getName());
      private static int startingWidth = 800;
      private static int startingHeight = 600;
      private static JFrame frame;
@@ -44,6 +45,7 @@
      }
 
      public static void createAndShowGUI() {
+         logger.log(Level.INFO, "Beginning to create and show GUI");
          initializeGlobalVariables();
          buildContainers();
          buildComponents();
@@ -114,8 +116,10 @@
      }
 
      private static void buildDrumWidgets() {
+         /*
          drumWidgets = new ArrayList<DrumWidget>();
          drumWidgets.add(new KickDrumWidget());
+         */
      }
 
      private static void addComponentsToContainers() {
@@ -125,6 +129,7 @@
          frame.setContentPane(drumPanel);
          //mainContentPanel.add(toolbar);
          //drumPanel.add(new KickDrumWidget());
+         drumPanel.addDrumWidget(new SnareDrumWidget());
          drumPanel.addDrumWidget(new KickDrumWidget());
      }
 
