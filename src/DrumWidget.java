@@ -8,11 +8,15 @@
  package com.adarwin.edrum;
 
  import java.awt.Color;
+ import java.awt.image.BufferedImage;
  import java.awt.event.MouseEvent;
  import java.awt.event.MouseListener;
  import java.awt.Point;
  import java.awt.Graphics;
  import java.awt.Dimension;
+ import java.io.File;
+ import java.io.IOException;
+ import javax.imageio.ImageIO;
  import javax.swing.JComponent;
  import javax.swing.JPopupMenu;
  import javax.swing.JMenuItem;
@@ -21,14 +25,28 @@
 
  abstract class DrumWidget extends JComponent {
      private static final Logger logger = Logger.getLogger(DrumWidget.class.getName());
-     private Point coordinates;
      JPopupMenu rightClickMenu;
      int xOffsetFromCenter, yOffsetFromCenter;
+     private BufferedImage image;
+     private int imageWidth, imageHeight;
+     Color background;
+     String drumName;
 
-     DrumWidget() {
+     DrumWidget(String drumName) {
          super();
+         this.drumName = drumName;
+         background = getBackground();
          buildRightClickMenu();
          setComponentPopupMenu(rightClickMenu);
+         addListeners();
+         //setVisible(true);
+     }
+     void buildRightClickMenu() {
+         rightClickMenu = new JPopupMenu();
+         rightClickMenu.add(new JMenuItem(drumName));
+         //rightClickMenu.add(new JMenuItem("test"));
+     }
+     void addListeners() {
          addMouseListener(new MouseListener() {
              public void mouseClicked(MouseEvent e) {
                  int button = e.getButton();
@@ -42,26 +60,37 @@
              public void mousePressed(MouseEvent e) {}
              public void mouseReleased(MouseEvent e) {}
          });
-         setVisible(true);
-     }
-     void buildRightClickMenu() {
-         rightClickMenu = new JPopupMenu();
-         //rightClickMenu.add(new JMenuItem("test"));
      }
      void showRightClickMenu(int x, int y) {
          rightClickMenu.show(this, x, y);
      }
 
-     Point getCoordinates()                 { return coordinates; }
-     void setCoordinates(Point coordinates) { this.coordinates = coordinates; }
-     void setCoordinates(int x, int y)      { coordinates.setLocation(x, y); }
 
      protected void paintComponent(Graphics g) {
-         //super.paintComponent(g);
-         //g.setColor(Color.black);
-         g.fillOval(0, 0, getWidth(), getHeight());
+         if (image == null) {
+            g.fillOval(0, 0, getWidth(), getHeight());
+         } else {
+             //logger.log(Level.INFO, "Drawing Image");
+             g.drawImage(image, 0, 0, imageWidth, imageHeight, background, null);
+         }
      }
      int getXOffsetFromCenter() { return xOffsetFromCenter; }
+     void setXOffsetFromCenter(int offset) { xOffsetFromCenter = offset; }
      int getYOffsetFromCenter() { return yOffsetFromCenter; }
+     void setYOffsetFromCenter(int offset) {yOffsetFromCenter = offset; }
+
+     int getImageWidth() { return imageWidth; }
+     int getImageHeight() { return imageHeight; }
+
+     void loadImage(String imagePath) {
+         File imageFile = new File(imagePath);
+         try {
+            image = ImageIO.read(imageFile);
+            imageWidth = image.getWidth();
+            imageHeight = image.getHeight();
+         } catch (IOException ex) {
+             logger.log(Level.SEVERE, "Failed to load image file");
+         }
+     }
  }
 

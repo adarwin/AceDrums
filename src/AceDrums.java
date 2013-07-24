@@ -129,7 +129,14 @@
          frame.setContentPane(drumPanel);
          //mainContentPanel.add(toolbar);
          //drumPanel.add(new KickDrumWidget());
-         drumPanel.addDrumWidget(new SnareDrumWidget());
+         SnareDrumWidget snare = new SnareDrumWidget(-97, -23);
+         drumPanel.addDrumWidget(snare);
+         TomWidget hiTom = new TomWidget("Hi Tom", "img/hitom.png", -100, -100);
+         //drumPanel.addDrumWidget(hiTom);
+         TomWidget lowTom = new TomWidget("Low Tom", "img/lowtom.png", 110, -110);
+         //drumPanel.addDrumWidget(lowTom);
+         TomWidget floorTom = new TomWidget("Floor Tom", "img/floortom.png", 130, 90);
+         //drumPanel.addDrumWidget(floorTom);
          drumPanel.addDrumWidget(new KickDrumWidget());
      }
 

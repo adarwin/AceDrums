@@ -30,16 +30,16 @@
      @Override
      protected void paintComponent(Graphics g) {
          super.paintComponent(g);
-         int centerX = getWidth()/2;
-         int centerY = getHeight()/2;
+         int centerX = getWidth()>>1; // >> 1 is the same as dividing by 2
+         int centerY = getHeight()>>1;
          for (DrumWidget drumWidget : drumWidgets) {
-             Dimension preferredSize = drumWidget.getPreferredSize();
-             int width = preferredSize.width;
-             int height = preferredSize.height;
+             //Dimension preferredSize = drumWidget.getPreferredSize();
+             int width = drumWidget.getImageWidth();//preferredSize.width;
+             int height = drumWidget.getImageHeight();//preferredSize.height;
              int xOffsetFromCenter = drumWidget.getXOffsetFromCenter();
              int yOffsetFromCenter = drumWidget.getYOffsetFromCenter();
-             drumWidget.setBounds(centerX + xOffsetFromCenter - width/2,
-                                  centerY + yOffsetFromCenter - height/2,
+             drumWidget.setBounds(centerX + xOffsetFromCenter - (width>>1),
+                                  centerY + yOffsetFromCenter - (height>>1),
                                   width, height);
          }
      }
