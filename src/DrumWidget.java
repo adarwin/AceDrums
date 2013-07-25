@@ -23,7 +23,7 @@
  import java.util.logging.Logger;
  import java.util.logging.Level;
 
- abstract class DrumWidget extends JComponent {
+ class DrumWidget extends JComponent {
      private static final Logger logger = Logger.getLogger(DrumWidget.class.getName());
      JPopupMenu rightClickMenu;
      int xOffsetFromCenter, yOffsetFromCenter;
@@ -32,9 +32,18 @@
      Color background;
      String drumName;
 
+     /*
      DrumWidget(String drumName) {
+         this(drumName, 0, 0);
+     }
+     */
+     DrumWidget(String drumName, String imagePath,
+                int xOffsetFromCenter, int yOffsetFromCenter) {
          super();
          this.drumName = drumName;
+         this.xOffsetFromCenter = xOffsetFromCenter;
+         this.yOffsetFromCenter = yOffsetFromCenter;
+         loadImage(imagePath);
          background = getBackground();
          buildRightClickMenu();
          setComponentPopupMenu(rightClickMenu);
@@ -70,7 +79,6 @@
          if (image == null) {
             g.fillOval(0, 0, getWidth(), getHeight());
          } else {
-             //logger.log(Level.INFO, "Drawing Image");
              g.drawImage(image, 0, 0, imageWidth, imageHeight, background, null);
          }
      }

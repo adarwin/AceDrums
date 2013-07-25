@@ -129,15 +129,30 @@
          frame.setContentPane(drumPanel);
          //mainContentPanel.add(toolbar);
          //drumPanel.add(new KickDrumWidget());
+         /*
          SnareDrumWidget snare = new SnareDrumWidget(-97, -23);
          drumPanel.addDrumWidget(snare);
-         TomWidget hiTom = new TomWidget("Hi Tom", "img/hitom.png", -100, -100);
+         */
+         drumPanel.addDrumWidget(
+            new DrumWidget("Crash", "img/crash.png", -100, -200)
+         );
+         drumPanel.addDrumWidget(
+            new DrumWidget("Hi-Hat", "img/hat.png", -155, -48)
+         );
+         drumPanel.addDrumWidget(
+            new DrumWidget("Snare", "img/snare.png", -99, -21)
+         );
+         drumPanel.addDrumWidget(
+            new DrumWidget("Kick", "img/kick.png", 0, 0)
+         );
+         //DrumWidget hat = new DrumWidget("Hi-Hat", "img/hat.png", -100, -100);
+         //TomWidget hiTom = new TomWidget("Hi Tom", "img/hitom.png", -100, -100);
          //drumPanel.addDrumWidget(hiTom);
-         TomWidget lowTom = new TomWidget("Low Tom", "img/lowtom.png", 110, -110);
+         //TomWidget lowTom = new TomWidget("Low Tom", "img/lowtom.png", 110, -110);
          //drumPanel.addDrumWidget(lowTom);
-         TomWidget floorTom = new TomWidget("Floor Tom", "img/floortom.png", 130, 90);
+         //TomWidget floorTom = new TomWidget("Floor Tom", "img/floortom.png", 130, 90);
          //drumPanel.addDrumWidget(floorTom);
-         drumPanel.addDrumWidget(new KickDrumWidget());
+         //drumPanel.addDrumWidget(new KickDrumWidget());
      }
 
      private static void addContainersToFrame() {
