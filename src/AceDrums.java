@@ -62,6 +62,7 @@
          drumPanel = new DrumPanel();
          frame.setSize(new Dimension(startingWidth, startingHeight));
          frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+         frame.setLocationRelativeTo(null);
      }
 
      private static void buildComponents() {
@@ -134,7 +135,10 @@
          drumPanel.addDrumWidget(snare);
          */
          drumPanel.addDrumWidget(
-            new DrumWidget("Crash", "img/crash.png", -100, -200)
+            new DrumWidget("Crash", "img/crash.png", 57, -194)
+         );
+         drumPanel.addDrumWidget(
+            new DrumWidget("Ride", "img/ride.png", 194, -58)
          );
          drumPanel.addDrumWidget(
             new DrumWidget("Hi-Hat", "img/hat.png", -155, -48)
