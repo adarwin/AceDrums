@@ -13,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.Point;
 import java.awt.Graphics;
 import java.awt.Dimension;
@@ -30,8 +31,10 @@ class DrumWidget extends JComponent {
                                                   DrumWidget.class.getName());
     JPopupMenu rightClickMenu;
     int xOffsetFromCenter, yOffsetFromCenter;
+    private int mouseClickX, mouseClickY;
     private BufferedImage image;
     private int imageWidth, imageHeight;
+    private MouseMotionListener mouseMotionListener;
     Color background;
     final String drumName;
 
@@ -59,6 +62,40 @@ class DrumWidget extends JComponent {
             }
         });
         rightClickMenu.add(drumMenuItem);
+
+        JMenuItem bringForward = new JMenuItem("Bring Forward");
+        bringForward.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                AceDrums.bringForward(DrumWidget.this);
+            }
+        });
+        rightClickMenu.add(bringForward);
+        JMenuItem bringToFront = new JMenuItem("Bring To Front");
+        bringToFront.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                AceDrums.bringToFront(DrumWidget.this);
+            }
+        });
+        rightClickMenu.add(bringToFront);
+        JMenuItem sendBackward = new JMenuItem("Send Backward");
+        sendBackward.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                AceDrums.sendBackward(DrumWidget.this);
+            }
+        });
+        rightClickMenu.add(sendBackward);
+        JMenuItem sendToBack = new JMenuItem("Send To Back");
+        sendToBack.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                AceDrums.sendToBack(DrumWidget.this);
+            }
+        });
+        rightClickMenu.add(sendToBack);
+
         JMenuItem removeMenuItem = new JMenuItem("Remove");
         removeMenuItem.addActionListener(new ActionListener() {
             @Override
@@ -69,18 +106,46 @@ class DrumWidget extends JComponent {
         rightClickMenu.add(removeMenuItem);
     }
     void addListeners() {
+        mouseMotionListener = new MouseMotionListener() {
+            public void mouseDragged(MouseEvent e) {
+                int newX = e.getX();
+                int newY = e.getY();
+                int deltaX = newX-mouseClickX;
+                int deltaY = newY-mouseClickY;
+                xOffsetFromCenter += deltaX;
+                yOffsetFromCenter += deltaY;
+                repaint();
+            }
+            public void mouseMoved(MouseEvent e) { }
+        };
         addMouseListener(new MouseListener() {
             public void mouseClicked(MouseEvent e) {
                 int button = e.getButton();
-                if (button == 3) {
-                    showRightClickMenu(e.getX(), e.getY());
+                switch (button) {
+                    case 1:
+                        if (AceDrums.getSetManagementMode()) {
+                            logger.log(Level.INFO, "Got set management mode");
+                        }
+                        break;
+                    case 3:
+                        showRightClickMenu(e.getX(), e.getY());
+                        break;
                 }
             }
             public void mouseEntered(MouseEvent e) {}
             public void mouseExited(MouseEvent e) {}
-            public void mousePressed(MouseEvent e) {}
+            public void mousePressed(MouseEvent e) {
+                mouseClickX = e.getX();
+                mouseClickY = e.getY();
+            }
             public void mouseReleased(MouseEvent e) {}
         });
+    }
+    void addMouseMotionListener() {
+        addMouseMotionListener(mouseMotionListener);
+    }
+    void removeMouseMotionListener() {
+        removeMouseMotionListener(mouseMotionListener);
     }
     void showRightClickMenu(int x, int y) {
         rightClickMenu.show(this, x, y);

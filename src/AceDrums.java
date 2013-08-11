@@ -7,6 +7,7 @@
 
 package com.adarwin.edrum;
 
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -34,6 +35,7 @@ public class AceDrums {
     private static JMenu fileMenu;
     private static JMenu editMenu;
     private static DrumPanel drumPanel;
+    private static boolean setManagementMode;
     private static JToolBar toolbar;
     private static ArrayList<DrumWidget> drumWidgets;
     private static boolean DEBUG = true;
@@ -44,6 +46,9 @@ public class AceDrums {
                 createAndShowGUI();
             }
         });
+    }
+    public static boolean getSetManagementMode() {
+        return setManagementMode;
     }
 
     public static void requestDrumWidgetRemoval(DrumWidget targetedDrum) {
@@ -109,12 +114,59 @@ public class AceDrums {
         setMenu.add(menu);
 
         menuItem = new JMenuItem("Manage set...");
+        menuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                benchmark(new Benchmark() {
+                    public void doWork() {
+                        toggleSetManagementMode();
+                    }
+                    public String getName() {
+                        return "toggleSetManagementMode()";
+                    }
+                });
+            }
+        });
         setMenu.add(menuItem);
 
         menuBar.add(fileMenu);
         menuBar.add(editMenu);
         menuBar.add(setMenu);
         menuBar.add(viewMenu);
+    }
+    private static void toggleSetManagementMode() {
+        setManagementMode = !setManagementMode;
+        //setManagementMode ^= true; is another way to toggle a boolean
+        int cursorType;
+        if (setManagementMode) {
+            drumPanel.addMouseMotionListeners();
+            cursorType = Cursor.HAND_CURSOR;
+        } else {
+            drumPanel.removeMouseMotionListeners();
+            cursorType = Cursor.DEFAULT_CURSOR;
+        }
+        frame.setCursor(new Cursor(cursorType));
+    }
+    static void bringForward(DrumWidget target) {
+        drumPanel.bringForward(target);
+    }
+    static void bringToFront(DrumWidget target) {
+        drumPanel.bringToFront(target);
+    }
+    static void sendBackward(DrumWidget target) {
+        drumPanel.sendBackward(target);
+    }
+    static void sendToBack(DrumWidget target) {
+        drumPanel.sendToBack(target);
+    }
+    public static void benchmark(Benchmark benchmark) {
+        final int multiplier = 1;
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < multiplier; i++) {
+            benchmark.doWork();
+        }
+        long end = System.currentTimeMillis();
+        logger.log(Level.INFO, "Completed " + benchmark.getName() + " in " +
+                               ((end - start)/multiplier) + " milliseconds");
     }
 
     private static void buildToolBar() {
@@ -137,12 +189,6 @@ public class AceDrums {
         // configured
         frame.setJMenuBar(menuBar);
         frame.setContentPane(drumPanel);
-        //mainContentPanel.add(toolbar);
-        //drumPanel.add(new KickDrumWidget());
-        /*
-        SnareDrumWidget snare = new SnareDrumWidget(-97, -23);
-        drumPanel.addDrumWidget(snare);
-        */
         drumPanel.addDrumWidget(
            new DrumWidget("Crash", "img/sd/crash_1.png", 57, -194)
         );
@@ -200,18 +246,6 @@ public class AceDrums {
         drumPanel.addDrumWidget(
            new DrumWidget("Kick", "img/sd/kick.png", 0, 0)
         );
-        //DrumWidget hat = new DrumWidget("Hi-Hat", "img/hat.png",
-        //                                -100, -100);
-        //TomWidget hiTom = new TomWidget("Hi Tom", "img/hitom.png",
-        //                                -100, -100);
-        //drumPanel.addDrumWidget(hiTom);
-        //TomWidget lowTom = new TomWidget("Low Tom", "img/lowtom.png",
-        //                                 110, -110);
-        //drumPanel.addDrumWidget(lowTom);
-        //TomWidget floorTom = new TomWidget("Floor Tom", "img/floortom.png",
-        //                                   130, 90);
-        //drumPanel.addDrumWidget(floorTom);
-        //drumPanel.addDrumWidget(new KickDrumWidget());
     }
 
     private static void addContainersToFrame() {
