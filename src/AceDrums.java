@@ -45,6 +45,10 @@ public class AceDrums {
         });
     }
 
+    public static void requestDrumWidgetRemoval(DrumWidget targetedDrum) {
+        drumPanel.removeDrumWidget(targetedDrum);
+    }
+
     public static void createAndShowGUI() {
         logger.log(Level.INFO, "Beginning to create and show GUI");
         initializeGlobalVariables();
