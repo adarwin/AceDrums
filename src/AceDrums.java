@@ -10,6 +10,7 @@ package com.adarwin.edrum;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.beans.PropertyVetoException;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 import java.util.logging.Level;
@@ -47,6 +48,9 @@ public class AceDrums {
 
     public static void requestDrumWidgetRemoval(DrumWidget targetedDrum) {
         drumPanel.removeDrumWidget(targetedDrum);
+    }
+    public static void requestTweakDialog(DrumWidget associatedDrumWidget) {
+        new TweakDialog(frame, associatedDrumWidget.drumName);
     }
 
     public static void createAndShowGUI() {

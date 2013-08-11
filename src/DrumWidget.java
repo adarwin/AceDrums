@@ -33,7 +33,7 @@ class DrumWidget extends JComponent {
     private BufferedImage image;
     private int imageWidth, imageHeight;
     Color background;
-    String drumName;
+    final String drumName;
 
     DrumWidget(String drumName, String imagePath,
                int xOffsetFromCenter, int yOffsetFromCenter) {
@@ -50,7 +50,15 @@ class DrumWidget extends JComponent {
     }
     void buildRightClickMenu() {
         rightClickMenu = new JPopupMenu();
-        rightClickMenu.add(new JMenuItem(drumName));
+        JMenuItem drumMenuItem = new JMenuItem("Tweak " + drumName + "...");
+        drumMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Point location = rightClickMenu.getLocation();
+                AceDrums.requestTweakDialog(DrumWidget.this);
+            }
+        });
+        rightClickMenu.add(drumMenuItem);
         JMenuItem removeMenuItem = new JMenuItem("Remove");
         removeMenuItem.addActionListener(new ActionListener() {
             @Override
