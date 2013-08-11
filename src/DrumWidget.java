@@ -24,7 +24,8 @@
  import java.util.logging.Level;
 
  class DrumWidget extends JComponent {
-     private static final Logger logger = Logger.getLogger(DrumWidget.class.getName());
+     private static final Logger logger = Logger.getLogger(
+                                                   DrumWidget.class.getName());
      JPopupMenu rightClickMenu;
      int xOffsetFromCenter, yOffsetFromCenter;
      private BufferedImage image;
@@ -62,7 +63,8 @@
                  if (button == 3) {
                      showRightClickMenu(e.getX(), e.getY());
                  }
-                 System.out.println("Mouse button " + e.getButton() + " clicked!");
+                 System.out.println("Mouse button " + e.getButton() +
+                                    " clicked!");
              }
              public void mouseEntered(MouseEvent e) {}
              public void mouseExited(MouseEvent e) {}
@@ -79,7 +81,8 @@
          if (image == null) {
             g.fillOval(0, 0, getWidth(), getHeight());
          } else {
-             g.drawImage(image, 0, 0, imageWidth, imageHeight, background, null);
+             g.drawImage(image, 0, 0, imageWidth, imageHeight,
+                         background, null);
          }
      }
      int getXOffsetFromCenter() { return xOffsetFromCenter; }

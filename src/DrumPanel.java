@@ -16,7 +16,8 @@
  import java.util.logging.Level;
 
  class DrumPanel extends JPanel {
-     private static final Logger logger = Logger.getLogger(DrumPanel.class.getName());
+     private static final Logger logger = Logger.getLogger(
+                                                    DrumPanel.class.getName());
      private ArrayList<DrumWidget> drumWidgets;
      DrumPanel() {
          super();
