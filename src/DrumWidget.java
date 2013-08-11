@@ -63,8 +63,6 @@
                  if (button == 3) {
                      showRightClickMenu(e.getX(), e.getY());
                  }
-                 System.out.println("Mouse button " + e.getButton() +
-                                    " clicked!");
              }
              public void mouseEntered(MouseEvent e) {}
              public void mouseExited(MouseEvent e) {}
