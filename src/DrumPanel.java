@@ -19,9 +19,10 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
-class DrumPanel extends JPanel {
+public class DrumPanel extends JPanel {
     private static final Logger logger = Logger.getLogger(
                                                    DrumPanel.class.getName());
+    DrumWidget selectedDrumWidget;
     BufferedImage image;
     int imageWidth, imageHeight;
     int width, height;
@@ -41,6 +42,24 @@ class DrumPanel extends JPanel {
         originY = 80;
         drumWidgets = new ArrayList<DrumWidget>();
         setLayout(null);
+    }
+    void resetDrumWidgetCoordinates() {
+        for (DrumWidget drumWidget : drumWidgets) {
+            drumWidget.resetCoordinates();
+        }
+        repaint();
+    }
+    void resetDrumWidgetZOrders() {
+        for (DrumWidget drumWidget : drumWidgets) {
+            setComponentZOrder(drumWidget, drumWidget.getOriginalZOrder());
+        }
+    }
+    void setSelected(DrumWidget target, boolean shouldSetSelected) {
+        target.setSelected(shouldSetSelected);
+        if (selectedDrumWidget != null && selectedDrumWidget != target) {
+            selectedDrumWidget.setSelected(false);
+        }
+        selectedDrumWidget = target;
     }
     void addMouseMotionListeners() {
         for (DrumWidget drumWidget : drumWidgets) {
@@ -70,17 +89,19 @@ class DrumPanel extends JPanel {
         }
     }
     void sendBackward(DrumWidget target) {
-        int listSize = drumWidgets.size();
-        int targetIndex = drumWidgets.indexOf(target);
+        //int listSize = drumWidgets.size();
+        //int targetIndex = drumWidgets.indexOf(target);
+        int componentCount = getComponentCount();
+        int targetIndex = getComponentZOrder(target);
         int newIndex = targetIndex+1;
-        if (newIndex >= listSize) newIndex = listSize - 1;
+        if (newIndex >= componentCount) newIndex = componentCount - 1;
         moveDrumWidgetToZOrder(target, newIndex);
         if (drumWidgets.indexOf(target) > targetIndex) {
             logger.log(Level.INFO, "Successfully sent drumWidget backward");
         }
     }
     void sendToBack(DrumWidget target) {
-        moveDrumWidgetToZOrder(target, drumWidgets.size()-1);
+        moveDrumWidgetToZOrder(target, getComponentCount()-1);
         if (drumWidgets.indexOf(target) == drumWidgets.size()-1) {
             logger.log(Level.INFO, "Successfully sent drumWidget to back");
         }
@@ -94,6 +115,7 @@ class DrumPanel extends JPanel {
     void addDrumWidget(DrumWidget drumWidget) {
         drumWidgets.add(drumWidget);
         add(drumWidget);
+        drumWidget.setZOrder(getComponentZOrder(drumWidget));
     }
     void removeDrumWidget(DrumWidget targetedDrumWidget) {
         remove(targetedDrumWidget);

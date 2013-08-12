@@ -26,30 +26,56 @@ import javax.swing.JMenuItem;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
-class DrumWidget extends JComponent {
+/**
+ * Description of DrumWidget
+ * 
+ * @author Andrew Darwin
+ */
+public class DrumWidget extends JComponent {
     private static final Logger logger = Logger.getLogger(
                                                   DrumWidget.class.getName());
-    JPopupMenu rightClickMenu;
-    int xOffsetFromCenter, yOffsetFromCenter;
+    private JPopupMenu rightClickMenu;
+    private int xOffsetFromCenter, yOffsetFromCenter;
+    private int defaultX, defaultY;
+    private int originalZOrder;
     private int mouseClickX, mouseClickY;
     private BufferedImage image;
     private int imageWidth, imageHeight;
     private MouseMotionListener mouseMotionListener;
-    Color background;
+    private DrumPanel drumPanel;
+    private Color background;
+    private String imageDirectory, imageFileName;
     final String drumName;
 
     DrumWidget(String drumName, String imagePath,
-               int xOffsetFromCenter, int yOffsetFromCenter) {
+               int xOffsetFromCenter, int yOffsetFromCenter,
+               DrumPanel drumPanel) {
         super();
         this.drumName = drumName;
         this.xOffsetFromCenter = xOffsetFromCenter;
         this.yOffsetFromCenter = yOffsetFromCenter;
+        defaultX = xOffsetFromCenter;
+        defaultY = yOffsetFromCenter;
+        this.drumPanel = drumPanel;
+        imageDirectory = imagePath.substring(0, imagePath.lastIndexOf('/'));
+        imageFileName = imagePath.substring(imagePath.lastIndexOf('/') + 1,
+                                            imagePath.length());
         loadImage(imagePath);
         background = getBackground();
         buildRightClickMenu();
         setComponentPopupMenu(rightClickMenu);
         addListeners();
         //setVisible(true);
+    }
+    void setZOrder(int zOrder) {
+        this.originalZOrder = zOrder;
+    }
+
+    int getOriginalZOrder() { return originalZOrder; }
+
+    void resetCoordinates() {
+        xOffsetFromCenter = defaultX;
+        yOffsetFromCenter = defaultY;
     }
     void buildRightClickMenu() {
         rightClickMenu = new JPopupMenu();
@@ -123,11 +149,10 @@ class DrumWidget extends JComponent {
                 int button = e.getButton();
                 switch (button) {
                     case 1:
-                        if (AceDrums.getSetManagementMode()) {
-                            logger.log(Level.INFO, "Got set management mode");
-                        }
+                        drumPanel.setSelected(DrumWidget.this, !isSelected());
                         break;
                     case 3:
+                        drumPanel.setSelected(DrumWidget.this, true);
                         showRightClickMenu(e.getX(), e.getY());
                         break;
                 }
@@ -140,6 +165,20 @@ class DrumWidget extends JComponent {
             }
             public void mouseReleased(MouseEvent e) {}
         });
+    }
+    boolean isSelected() {
+        return imageDirectory.endsWith("selected");
+    }
+    void setSelected(boolean shouldBeSelected) {
+        boolean isSelected = isSelected();
+        if (shouldBeSelected && !isSelected) {
+            imageDirectory += "/selected";
+        } else if (!shouldBeSelected && isSelected) {
+            imageDirectory = imageDirectory.substring(0,
+                                              imageDirectory.lastIndexOf('/'));
+        }
+        loadImage(imageDirectory + "/" + imageFileName);
+        repaint();
     }
     void addMouseMotionListener() {
         addMouseMotionListener(mouseMotionListener);

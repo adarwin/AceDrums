@@ -15,6 +15,9 @@ import java.beans.PropertyVetoException;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 import java.util.logging.Level;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.JPanel;
 import javax.swing.JFrame;
 import javax.swing.JButton;
@@ -41,12 +44,35 @@ public class AceDrums {
     private static boolean DEBUG = true;
 
     public static void main(String[] args) {
+        try {
+            for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (UnsupportedLookAndFeelException ex) {
+            logger.log(Level.SEVERE, "Could not set Nimbus look and feel " +
+                                     "due to UnsupportedLookAndFeelException");
+        } catch (ClassNotFoundException ex) {
+            logger.log(Level.SEVERE, "Could not set Nimbus look and feel " +
+                                     "due to ClassNotFoundException");
+        } catch (InstantiationException ex) {
+            logger.log(Level.SEVERE, "Could not set Nimbus look and feel " +
+                                     "due to InstantiationException");
+        } catch (IllegalAccessException ex) {
+            logger.log(Level.SEVERE, "Could not set Nimbus look and feel " +
+                                     "due to IllegalAccessException");
+        }
+
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 createAndShowGUI();
             }
         });
     }
+
+
     public static boolean getSetManagementMode() {
         return setManagementMode;
     }
@@ -54,6 +80,8 @@ public class AceDrums {
     public static void requestDrumWidgetRemoval(DrumWidget targetedDrum) {
         drumPanel.removeDrumWidget(targetedDrum);
     }
+
+
     public static void requestTweakDialog(DrumWidget associatedDrumWidget) {
         new TweakDialog(frame, associatedDrumWidget.drumName);
     }
@@ -128,6 +156,15 @@ public class AceDrums {
         });
         setMenu.add(menuItem);
 
+        menuItem = new JMenuItem("Reset Set");
+        menuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                drumPanel.resetDrumWidgetCoordinates();
+                drumPanel.resetDrumWidgetZOrders();
+            }
+        });
+        setMenu.add(menuItem);
+
         menuBar.add(fileMenu);
         menuBar.add(editMenu);
         menuBar.add(setMenu);
@@ -160,13 +197,14 @@ public class AceDrums {
     }
     public static void benchmark(Benchmark benchmark) {
         final int multiplier = 1;
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
         for (int i = 0; i < multiplier; i++) {
             benchmark.doWork();
         }
-        long end = System.currentTimeMillis();
+        long end = System.nanoTime();
         logger.log(Level.INFO, "Completed " + benchmark.getName() + " in " +
-                               ((end - start)/multiplier) + " milliseconds");
+                               ((end - start)/(1000*multiplier)) + 
+                               " microseconds");
     }
 
     private static void buildToolBar() {
@@ -190,61 +228,65 @@ public class AceDrums {
         frame.setJMenuBar(menuBar);
         frame.setContentPane(drumPanel);
         drumPanel.addDrumWidget(
-           new DrumWidget("Crash", "img/sd/crash_1.png", 57, -194)
+           new DrumWidget("Crash", "img/sd/crash_1.png", 57, -194, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Crash 2", "img/sd/crash_2.png", 150, -149)
+            new DrumWidget("Crash 2", "img/sd/crash_2.png", 150, -149,
+                           drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Crash 3", "img/sd/crash_2.png", -184, -171)
+            new DrumWidget("Crash 3", "img/sd/crash_2.png", -184, -171,
+                           drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Crash 4", "img/sd/crash_2.png", -53, -198)
+            new DrumWidget("Crash 4", "img/sd/crash_2.png", -53, -198,
+                           drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("China", "img/sd/china.png", -236, -74)
+            new DrumWidget("China", "img/sd/china.png", -236, -74, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Ride 4", "img/sd/ride_3.png", -209, 27)
+            new DrumWidget("Ride 4", "img/sd/ride_3.png", -209, 27, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Ride 3", "img/sd/ride_2.png", 274, -94)
+            new DrumWidget("Ride 3", "img/sd/ride_2.png", 274, -94, drumPanel)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Ride 1", "img/sd/ride_1.png", 194, -58)
+           new DrumWidget("Ride 1", "img/sd/ride_1.png", 194, -58, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Crash", "img/sd/crash_1.png", 215, 54)
+            new DrumWidget("Crash", "img/sd/crash_1.png", 215, 54, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Ride 2", "img/sd/ride_1.png", -158, -148)
+            new DrumWidget("Ride 2", "img/sd/ride_1.png", -158, -148,
+                           drumPanel)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Hi-Hat", "img/sd/hat.png", -155, -48)
+           new DrumWidget("Hi-Hat", "img/sd/hat.png", -155, -48, drumPanel)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Snare", "img/sd/snare.png", -99, -21)
+            new DrumWidget("Floor 2", "img/sd/tom_5.png", 136, 81, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Floor 2", "img/sd/tom_5.png", 136, 81)
+            new DrumWidget("Floor 1", "img/sd/tom_4.png", 114, -13, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Floor 1", "img/sd/tom_4.png", 114, -13)
+            new DrumWidget("Rack 3", "img/sd/tom_3.png", 60, -90, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Rack 3", "img/sd/tom_3.png", 60, -90)
+           new DrumWidget("Rack 2", "img/sd/tom_2.png", -14, -111, drumPanel)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Rack 2", "img/sd/tom_2.png", -14, -111)
+           new DrumWidget("Snare", "img/sd/snare.png", -99, -21, drumPanel)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Rack 1", "img/sd/tom_1.png", -79, -96)
+           new DrumWidget("Rack 1", "img/sd/tom_1.png", -79, -96, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Cowbell", "img/sd/cowbell.png", 31, -18)
+            new DrumWidget("Cowbell", "img/sd/cowbell.png", 31, -18, drumPanel)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Kick", "img/sd/kick.png", 0, 0)
+           new DrumWidget("Kick", "img/sd/kick.png", 0, 0, drumPanel)
         );
     }
 
