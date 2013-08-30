@@ -19,6 +19,12 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
+/**
+ * The DrumPanel class defines a custom JPanel to be used for displaying
+ * various drums.
+ * 
+ * @author Andrew Darwin
+ */
 public class DrumPanel extends JPanel {
     private static final Logger logger = Logger.getLogger(
                                                    DrumPanel.class.getName());
@@ -107,8 +113,6 @@ public class DrumPanel extends JPanel {
         }
     }
     private void moveDrumWidgetToZOrder(DrumWidget target, int newIndex) {
-        //drumWidgets.remove(target);
-        //drumWidgets.add(newIndex, target);
         setComponentZOrder(target, newIndex);
         repaint();
     }

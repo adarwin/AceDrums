@@ -27,12 +27,13 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 
 /**
- * Description of DrumWidget
+ * The DrumWidet class defines a custom JComponent to be used for displaying
+ * various drums.
  * 
  * @author Andrew Darwin
  */
 public class DrumWidget extends JComponent {
-    private static final Logger logger = Logger.getLogger(
+    protected static final Logger logger = Logger.getLogger(
                                                   DrumWidget.class.getName());
     private JPopupMenu rightClickMenu;
     private int xOffsetFromCenter, yOffsetFromCenter;
@@ -45,13 +46,26 @@ public class DrumWidget extends JComponent {
     private DrumPanel drumPanel;
     private Color background;
     private String imageDirectory, imageFileName;
+    private byte midiID;
+    /** Fild Description */
     final String drumName;
 
-    DrumWidget(String drumName, String imagePath,
+    /**
+     * This constructor takes stuff
+     *
+     * @param drumName This is a string
+     * @param imagePath This is a string also
+     * @param xOffsetFromCenter This is an integer
+     * @param yOffsetFromCenter This is also an integer
+     * @param drumPanel This is a reference to the DrumPanel object containing
+     *                  this DrumWidget
+     */
+    public DrumWidget(String drumName, byte midiID, String imagePath,
                int xOffsetFromCenter, int yOffsetFromCenter,
                DrumPanel drumPanel) {
         super();
         this.drumName = drumName;
+        this.midiID = midiID;
         this.xOffsetFromCenter = xOffsetFromCenter;
         this.yOffsetFromCenter = yOffsetFromCenter;
         defaultX = xOffsetFromCenter;
@@ -65,19 +79,38 @@ public class DrumWidget extends JComponent {
         buildRightClickMenu();
         setComponentPopupMenu(rightClickMenu);
         addListeners();
-        //setVisible(true);
     }
-    void setZOrder(int zOrder) {
+
+    /**
+     * This method is intended to be called only once
+     *
+     * @param zOrder Input Integer
+     */
+    protected void setZOrder(int zOrder) {
         this.originalZOrder = zOrder;
     }
 
-    int getOriginalZOrder() { return originalZOrder; }
+    /**
+     * Returns the original z order
+     *
+     * @return This method returns the original zOrder
+     */
+    protected int getOriginalZOrder() { return originalZOrder; }
 
-    void resetCoordinates() {
+    /**
+     * Resets coordinates to the default x and y that were passed into the
+     * constructor
+     */
+    protected void resetCoordinates() {
         xOffsetFromCenter = defaultX;
         yOffsetFromCenter = defaultY;
     }
-    void buildRightClickMenu() {
+
+
+    /**
+     * Builds the right click menu
+     */
+    protected void buildRightClickMenu() {
         rightClickMenu = new JPopupMenu();
         JMenuItem drumMenuItem = new JMenuItem("Tweak " + drumName + "...");
         drumMenuItem.addActionListener(new ActionListener() {
@@ -131,7 +164,11 @@ public class DrumWidget extends JComponent {
         });
         rightClickMenu.add(removeMenuItem);
     }
-    void addListeners() {
+
+    /**
+     * Adds listeners to this DrumWidget
+     */
+    protected void addListeners() {
         mouseMotionListener = new MouseMotionListener() {
             public void mouseDragged(MouseEvent e) {
                 int newX = e.getX();
@@ -148,13 +185,12 @@ public class DrumWidget extends JComponent {
             public void mouseClicked(MouseEvent e) {
                 int button = e.getButton();
                 switch (button) {
-                    case 1:
-                        drumPanel.setSelected(DrumWidget.this, !isSelected());
-                        break;
-                    case 3:
-                        drumPanel.setSelected(DrumWidget.this, true);
-                        showRightClickMenu(e.getX(), e.getY());
-                        break;
+                case 1:
+                    break;
+                case 3:
+                    drumPanel.setSelected(DrumWidget.this, true);
+                    showRightClickMenu(e.getX(), e.getY());
+                    break;
                 }
             }
             public void mouseEntered(MouseEvent e) {}
@@ -162,14 +198,29 @@ public class DrumWidget extends JComponent {
             public void mousePressed(MouseEvent e) {
                 mouseClickX = e.getX();
                 mouseClickY = e.getY();
+                drumPanel.setSelected(DrumWidget.this, !isSelected());
+                AceDrums.reportStroke(midiID, (byte)127);
             }
-            public void mouseReleased(MouseEvent e) {}
+            public void mouseReleased(MouseEvent e) {
+                drumPanel.setSelected(DrumWidget.this, !isSelected());
+            }
         });
     }
-    boolean isSelected() {
+
+    /**
+     * Determines whether this DrumWidget has been selected
+     */
+    protected boolean isSelected() {
         return imageDirectory.endsWith("selected");
     }
-    void setSelected(boolean shouldBeSelected) {
+
+    /**
+     * Sets the selection value of this DrumWidget
+     *
+     * @param shouldBeSelected Indecates whether to set this DrumWidget as
+     *                         selected or not
+     */
+    protected void setSelected(boolean shouldBeSelected) {
         boolean isSelected = isSelected();
         if (shouldBeSelected && !isSelected) {
             imageDirectory += "/selected";
@@ -180,17 +231,36 @@ public class DrumWidget extends JComponent {
         loadImage(imageDirectory + "/" + imageFileName);
         repaint();
     }
-    void addMouseMotionListener() {
+
+    /**
+     * Adds the previously defined MouseMotionListener to this DrumWidget
+     */
+    protected void addMouseMotionListener() {
         addMouseMotionListener(mouseMotionListener);
     }
-    void removeMouseMotionListener() {
+
+    /**
+     * Removes the predefined MouseMotionListener
+     */
+    protected void removeMouseMotionListener() {
         removeMouseMotionListener(mouseMotionListener);
     }
-    void showRightClickMenu(int x, int y) {
+
+    /**
+     * Shows the right click menu at the given coordinates
+     * @param x X-Coordinate
+     * @param y Y-Coordinate
+     */
+    protected void showRightClickMenu(int x, int y) {
         rightClickMenu.show(this, x, y);
     }
 
 
+    /**
+     * Overrides JComponent's paintComponent() method
+     * @param g A Graphics object
+     */
+    @Override
     protected void paintComponent(Graphics g) {
         if (image == null) {
            g.fillOval(0, 0, getWidth(), getHeight());
@@ -199,15 +269,48 @@ public class DrumWidget extends JComponent {
                         background, null);
         }
     }
-    int getXOffsetFromCenter() { return xOffsetFromCenter; }
-    void setXOffsetFromCenter(int offset) { xOffsetFromCenter = offset; }
-    int getYOffsetFromCenter() { return yOffsetFromCenter; }
-    void setYOffsetFromCenter(int offset) {yOffsetFromCenter = offset; }
 
-    int getImageWidth() { return imageWidth; }
-    int getImageHeight() { return imageHeight; }
+    /**
+     * Gets the x offset from center
+     */
+    protected int getXOffsetFromCenter() { return xOffsetFromCenter; }
 
-    void loadImage(String imagePath) {
+    /**
+     * Sets the x offset from center
+     * @param offset
+     */
+    protected void setXOffsetFromCenter(int offset) {
+        xOffsetFromCenter = offset;
+    }
+
+    /**
+     * Gets the y offset from center
+     */
+    protected int getYOffsetFromCenter() { return yOffsetFromCenter; }
+
+    /**
+     * Sets the y offset from center
+     * @param offset
+     */
+    protected void setYOffsetFromCenter(int offset) {
+        yOffsetFromCenter = offset;
+    }
+
+    /**
+     * Gets the image width
+     */
+    protected int getImageWidth() { return imageWidth; }
+
+    /**
+     * Gets the image height
+     */
+    protected int getImageHeight() { return imageHeight; }
+
+    /**
+     * Loads the given image
+     * @param imagePath Relative path to a drum image
+     */
+    protected void loadImage(String imagePath) {
         File imageFile = new File(imagePath);
         try {
            image = ImageIO.read(imageFile);

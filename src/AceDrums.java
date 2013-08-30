@@ -7,6 +7,12 @@
 
 package com.adarwin.edrum;
 
+import java.util.HashMap;
+import de.humatic.mmj.MidiSystem;
+import de.humatic.mmj.MidiOutput;
+//import javax.sound.midi.MidiSystem;
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiDevice.Info;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
@@ -41,6 +47,32 @@ public class AceDrums {
     private static boolean setManagementMode;
     private static JToolBar toolbar;
     private static ArrayList<DrumWidget> drumWidgets;
+    private static MidiOutput midiOutput;
+    protected static byte BASS_DRUM_2 = 35;
+    protected static byte BASS_DRUM_1 = 36;
+    protected static byte SIDE_STICK = 37;
+    protected static byte SNARE_DRUM_1 = 38;
+    protected static byte HAND_CLAP = 39;
+    protected static byte SNARE_DRUM_2 = 40;
+    protected static byte LOW_TOM_2 = 41;
+    protected static byte CLOSED_HIHAT = 42;
+    protected static byte LOW_TOM_1 = 43;
+    protected static byte PEDAL_HIHAT = 44;
+    protected static byte MID_TOM_2 = 45;
+    protected static byte OPEN_HIHAT = 46;
+    protected static byte MID_TOM_1 = 47;
+    protected static byte HIGH_TOM_2 = 48;
+    protected static byte CRASH_CYMBAL_1 = 49;
+    protected static byte HIGH_TOM_1 = 50;
+    protected static byte RIDE_CYMBAL_1 = 51;
+    protected static byte CHINESE_CYMBAL = 52;
+    protected static byte RIDE_BELL = 53;
+    protected static byte TAMBOURINE = 54;
+    protected static byte SPLASH_CYMBAL = 55;
+    protected static byte COWBELL = 56;
+    protected static byte CRASH_CYMBAL_2 = 57;
+    protected static byte VIBRA_SLAP = 58;
+    protected static byte RIDE_CYMBAL_2 = 59;
     private static boolean DEBUG = true;
 
     public static void main(String[] args) {
@@ -97,7 +129,16 @@ public class AceDrums {
     }
 
     private static void initializeGlobalVariables() {
+        MidiSystem.initMidiSystem("AceDrums", "SuperiorDrummer");
+        midiOutput = MidiSystem.openMidiOutput(0);
         frame = new JFrame("AceDrums");
+    }
+
+    protected static void reportStroke(byte midiID, byte velocity) {
+        // Note on
+        midiOutput.sendMidi(new byte[] { (byte)144, midiID, velocity });
+        // Note off
+        midiOutput.sendMidi(new byte[] { (byte)128, midiID, velocity });
     }
 
     private static void buildContainers() {
@@ -228,65 +269,65 @@ public class AceDrums {
         frame.setJMenuBar(menuBar);
         frame.setContentPane(drumPanel);
         drumPanel.addDrumWidget(
-           new DrumWidget("Crash", "img/sd/crash_1.png", 57, -194, drumPanel)
+           new DrumWidget("Crash", CRASH_CYMBAL_1, "img/sd/crash_1.png", 57, -194, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Crash 2", "img/sd/crash_2.png", 150, -149,
+            new DrumWidget("Crash 2", CRASH_CYMBAL_2, "img/sd/crash_2.png", 150, -149,
                            drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Crash 3", "img/sd/crash_2.png", -184, -171,
+            new DrumWidget("Crash 3", CRASH_CYMBAL_1, "img/sd/crash_2.png", -184, -171,
                            drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Crash 4", "img/sd/crash_2.png", -53, -198,
+            new DrumWidget("Crash 4", SPLASH_CYMBAL, "img/sd/crash_2.png", -53, -198,
                            drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("China", "img/sd/china.png", -236, -74, drumPanel)
+            new DrumWidget("China", CHINESE_CYMBAL, "img/sd/china.png", -236, -74, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Ride 4", "img/sd/ride_3.png", -209, 27, drumPanel)
+            new DrumWidget("Ride 4", RIDE_CYMBAL_2, "img/sd/ride_3.png", -209, 27, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Ride 3", "img/sd/ride_2.png", 274, -94, drumPanel)
+            new DrumWidget("Ride 3", RIDE_CYMBAL_2, "img/sd/ride_2.png", 274, -94, drumPanel)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Ride 1", "img/sd/ride_1.png", 194, -58, drumPanel)
+           new DrumWidget("Ride 1", RIDE_CYMBAL_1, "img/sd/ride_1.png", 194, -58, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Crash", "img/sd/crash_1.png", 215, 54, drumPanel)
+            new DrumWidget("Crash", CRASH_CYMBAL_1, "img/sd/crash_1.png", 215, 54, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Ride 2", "img/sd/ride_1.png", -158, -148,
+            new DrumWidget("Ride 2", RIDE_CYMBAL_2, "img/sd/ride_1.png", -158, -148,
                            drumPanel)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Hi-Hat", "img/sd/hat.png", -155, -48, drumPanel)
+           new DrumWidget("Hi-Hat", CLOSED_HIHAT, "img/sd/hat.png", -155, -48, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Floor 2", "img/sd/tom_5.png", 136, 81, drumPanel)
+            new DrumWidget("Floor 2", LOW_TOM_2, "img/sd/tom_5.png", 136, 81, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Floor 1", "img/sd/tom_4.png", 114, -13, drumPanel)
+            new DrumWidget("Floor 1", LOW_TOM_1, "img/sd/tom_4.png", 114, -13, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Rack 3", "img/sd/tom_3.png", 60, -90, drumPanel)
+            new DrumWidget("Rack 3", MID_TOM_2, "img/sd/tom_3.png", 60, -90, drumPanel)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Rack 2", "img/sd/tom_2.png", -14, -111, drumPanel)
+           new DrumWidget("Rack 2", MID_TOM_1, "img/sd/tom_2.png", -14, -111, drumPanel)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Snare", "img/sd/snare.png", -99, -21, drumPanel)
+           new DrumWidget("Snare", SNARE_DRUM_1, "img/sd/snare.png", -99, -21, drumPanel)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Rack 1", "img/sd/tom_1.png", -79, -96, drumPanel)
+           new DrumWidget("Rack 1", HIGH_TOM_2, "img/sd/tom_1.png", -79, -96, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Cowbell", "img/sd/cowbell.png", 31, -18, drumPanel)
+            new DrumWidget("Cowbell", COWBELL, "img/sd/cowbell.png", 31, -18, drumPanel)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Kick", "img/sd/kick.png", 0, 0, drumPanel)
+           new DrumWidget("Kick", BASS_DRUM_1, "img/sd/kick.png", 0, 0, drumPanel)
         );
     }
 
