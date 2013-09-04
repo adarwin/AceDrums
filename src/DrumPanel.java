@@ -28,6 +28,7 @@ import java.util.logging.Level;
 public class DrumPanel extends JPanel {
     private static final Logger logger = Logger.getLogger(
                                                    DrumPanel.class.getName());
+    private static final long serialVersionUID = 1L;
     DrumWidget selectedDrumWidget;
     BufferedImage image;
     int imageWidth, imageHeight;

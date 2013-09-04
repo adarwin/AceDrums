@@ -19,10 +19,15 @@ import java.awt.Graphics;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Set;
+import javax.swing.event.PopupMenuListener;
+import javax.swing.event.PopupMenuEvent;
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JMenu;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
@@ -35,6 +40,7 @@ import java.util.logging.Level;
 public class DrumWidget extends JComponent {
     protected static final Logger logger = Logger.getLogger(
                                                   DrumWidget.class.getName());
+    private static final long serialVersionUID = 1L;
     private JPopupMenu rightClickMenu;
     private int xOffsetFromCenter, yOffsetFromCenter;
     private int defaultX, defaultY;
@@ -76,7 +82,7 @@ public class DrumWidget extends JComponent {
                                             imagePath.length());
         loadImage(imagePath);
         background = getBackground();
-        buildRightClickMenu();
+        buildRightClickMenu(null);
         setComponentPopupMenu(rightClickMenu);
         addListeners();
     }
@@ -110,7 +116,7 @@ public class DrumWidget extends JComponent {
     /**
      * Builds the right click menu
      */
-    protected void buildRightClickMenu() {
+    protected void buildRightClickMenu(HashMap<String, Byte> drumHashMap) {
         rightClickMenu = new JPopupMenu();
         JMenuItem drumMenuItem = new JMenuItem("Tweak " + drumName + "...");
         drumMenuItem.addActionListener(new ActionListener() {
@@ -163,6 +169,52 @@ public class DrumWidget extends JComponent {
             }
         });
         rightClickMenu.add(removeMenuItem);
+        
+        JMenuItem nextMIDI = new JMenuItem("Next MIDI Value");
+        nextMIDI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int previous = (int)midiID;
+                midiID = ++midiID;
+                System.out.println("Changed from " + previous + " to " +
+                                   midiID);
+            }
+        });
+        rightClickMenu.add(nextMIDI);
+        JMenuItem previousMIDI = new JMenuItem("Previous MIDI Value");
+        previousMIDI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int previous = (int)midiID;
+                midiID = --midiID;
+                System.out.println("Changed from " + previous + " to " +
+                                   midiID);
+            }
+        });
+        rightClickMenu.add(previousMIDI);
+
+        if (drumHashMap != null) {
+            JMenu articulation = new JMenu("Articulation");
+            Set<String> keySet = drumHashMap.keySet();
+            for (String key : keySet) {
+                JMenuItem temp = new JMenuItem(key + ": " + drumHashMap.get(key));
+                temp.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                    }
+                });
+            }
+        }
+
+
+
+        rightClickMenu.addPopupMenuListener(new PopupMenuListener() {
+            public void popupMenuCanceled(PopupMenuEvent e) {
+                drumPanel.setSelected(DrumWidget.this, false);
+            }
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {}
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {}
+        });
     }
 
     /**

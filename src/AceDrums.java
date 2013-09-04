@@ -48,6 +48,7 @@ public class AceDrums {
     private static JToolBar toolbar;
     private static ArrayList<DrumWidget> drumWidgets;
     private static MidiOutput midiOutput;
+    private static MIDIKit midiKit;
     protected static byte BASS_DRUM_2 = 35;
     protected static byte BASS_DRUM_1 = 36;
     protected static byte SIDE_STICK = 37;
@@ -131,6 +132,7 @@ public class AceDrums {
     private static void initializeGlobalVariables() {
         MidiSystem.initMidiSystem("AceDrums", "SuperiorDrummer");
         midiOutput = MidiSystem.openMidiOutput(0);
+        midiKit = new MIDIKit();
         frame = new JFrame("AceDrums");
     }
 
@@ -269,65 +271,99 @@ public class AceDrums {
         frame.setJMenuBar(menuBar);
         frame.setContentPane(drumPanel);
         drumPanel.addDrumWidget(
-           new DrumWidget("Crash", CRASH_CYMBAL_1, "img/sd/crash_1.png", 57, -194, drumPanel)
+           new DrumWidget("Crash 4",
+                          midiKit.get(midiKit.cymbal4, MIDIKit.crash),
+                          "img/sd/crash_1.png", 57, -194, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Crash 2", CRASH_CYMBAL_2, "img/sd/crash_2.png", 150, -149,
-                           drumPanel)
+            new DrumWidget("Crash 5",
+                           midiKit.get(midiKit.cymbal5, MIDIKit.crash),
+                           "img/sd/crash_2.png", 150, -149, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Crash 3", CRASH_CYMBAL_1, "img/sd/crash_2.png", -184, -171,
-                           drumPanel)
+            new DrumWidget("Crash 2",
+                           midiKit.get(midiKit.cymbal2, MIDIKit.crash),
+                           "img/sd/crash_2.png", -184, -171, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Crash 4", SPLASH_CYMBAL, "img/sd/crash_2.png", -53, -198,
-                           drumPanel)
+            new DrumWidget("Crash 3",
+                           midiKit.get(midiKit.cymbal3, MIDIKit.crash),
+                           "img/sd/crash_2.png", -53, -198, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("China", CHINESE_CYMBAL, "img/sd/china.png", -236, -74, drumPanel)
+            new DrumWidget("China",
+                           midiKit.get(midiKit.cymbal1, MIDIKit.crash),
+                           "img/sd/china.png", -236, -74, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Ride 4", RIDE_CYMBAL_2, "img/sd/ride_3.png", -209, 27, drumPanel)
+            new DrumWidget("Ride 1",
+                           midiKit.get(midiKit.ride1, MIDIKit.ride),
+                           "img/sd/ride_3.png", -209, 27, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Ride 3", RIDE_CYMBAL_2, "img/sd/ride_2.png", 274, -94, drumPanel)
+            new DrumWidget("Ride 4",
+                           midiKit.get(midiKit.ride4, MIDIKit.ride),
+                           "img/sd/ride_2.png", 274, -94, drumPanel)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Ride 1", RIDE_CYMBAL_1, "img/sd/ride_1.png", 194, -58, drumPanel)
+           new DrumWidget("Ride 3",
+                          midiKit.get(midiKit.ride3, MIDIKit.ride),
+                          "img/sd/ride_1.png", 194, -58, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Crash", CRASH_CYMBAL_1, "img/sd/crash_1.png", 215, 54, drumPanel)
+            new DrumWidget("Crash 6",
+                           midiKit.get(midiKit.cymbal6, MIDIKit.crash),
+                           "img/sd/crash_1.png", 215, 54, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Ride 2", RIDE_CYMBAL_2, "img/sd/ride_1.png", -158, -148,
-                           drumPanel)
+            new DrumWidget("Ride 2",
+                           midiKit.get(midiKit.ride2, MIDIKit.ride),
+                           "img/sd/ride_1.png", -158, -148, drumPanel)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Hi-Hat", CLOSED_HIHAT, "img/sd/hat.png", -155, -48, drumPanel)
+           new DrumWidget("Hi-Hat",
+                          midiKit.get(midiKit.hi_hat, MIDIKit.closed_edge),
+                          "img/sd/hat.png", -155, -48, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Floor 2", LOW_TOM_2, "img/sd/tom_5.png", 136, 81, drumPanel)
+            new DrumWidget("Floor 2",
+                           midiKit.get(midiKit.floorTom2, MIDIKit.center),
+                           "img/sd/tom_5.png", 136, 81, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Floor 1", LOW_TOM_1, "img/sd/tom_4.png", 114, -13, drumPanel)
+            new DrumWidget("Floor 1",
+                           midiKit.get(midiKit.floorTom1, MIDIKit.center),
+                           "img/sd/tom_4.png", 114, -13, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Rack 3", MID_TOM_2, "img/sd/tom_3.png", 60, -90, drumPanel)
+            new DrumWidget("Rack 3",
+                           midiKit.get(midiKit.rackTom3, MIDIKit.center),
+                           "img/sd/tom_3.png", 60, -90, drumPanel)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Rack 2", MID_TOM_1, "img/sd/tom_2.png", -14, -111, drumPanel)
+           new DrumWidget("Rack 2",
+                          midiKit.get(midiKit.rackTom2, MIDIKit.center),
+                          "img/sd/tom_2.png", -14, -111, drumPanel)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Snare", SNARE_DRUM_1, "img/sd/snare.png", -99, -21, drumPanel)
+           new DrumWidget("Snare",
+                          midiKit.get(midiKit.snare, MIDIKit.center),
+                          "img/sd/snare.png", -99, -21, drumPanel)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Rack 1", HIGH_TOM_2, "img/sd/tom_1.png", -79, -96, drumPanel)
+           new DrumWidget("Rack 1",
+                          midiKit.get(midiKit.rackTom1, MIDIKit.center),
+                          "img/sd/tom_1.png", -79, -96, drumPanel)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Cowbell", COWBELL, "img/sd/cowbell.png", 31, -18, drumPanel)
+            new DrumWidget("Cowbell",
+                           midiKit.get(midiKit.cowbell, MIDIKit.hit),
+                           "img/sd/cowbell.png", 31, -18, drumPanel)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Kick", BASS_DRUM_1, "img/sd/kick.png", 0, 0, drumPanel)
+           new DrumWidget("Kick",
+                          midiKit.get(midiKit.kick, MIDIKit.right),
+                          "img/sd/kick.png", 0, 0, drumPanel)
         );
     }
 

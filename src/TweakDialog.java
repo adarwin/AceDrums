@@ -12,6 +12,7 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 
 public class TweakDialog extends JDialog {
+    private static final long serialVersionUID = 1L;
     public TweakDialog(JFrame frame, String drumName) {
         super(frame, "Drum Tweaker: " + drumName, true);
         setSize(new Dimension(400, 300));
