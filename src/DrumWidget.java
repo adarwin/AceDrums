@@ -19,7 +19,6 @@ import java.awt.Graphics;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Set;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.event.PopupMenuEvent;
@@ -28,6 +27,7 @@ import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JMenu;
+import javax.swing.JCheckBoxMenuItem;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
@@ -66,12 +66,14 @@ public class DrumWidget extends JComponent {
      * @param drumPanel This is a reference to the DrumPanel object containing
      *                  this DrumWidget
      */
-    public DrumWidget(String drumName, byte midiID, String imagePath,
-               int xOffsetFromCenter, int yOffsetFromCenter,
-               DrumPanel drumPanel) {
+    public DrumWidget(String drumName,
+                      DrumArticulationMap drumArticulationMap,
+                      String imagePath, int xOffsetFromCenter,
+                      int yOffsetFromCenter, DrumPanel drumPanel) {
         super();
         this.drumName = drumName;
-        this.midiID = midiID;
+        this.midiID = drumArticulationMap.getArticulationMIDI();
+        //this.midiID = MIDIKit.get(drumArticulationMap, defaultArticulation);
         this.xOffsetFromCenter = xOffsetFromCenter;
         this.yOffsetFromCenter = yOffsetFromCenter;
         defaultX = xOffsetFromCenter;
@@ -82,7 +84,7 @@ public class DrumWidget extends JComponent {
                                             imagePath.length());
         loadImage(imagePath);
         background = getBackground();
-        buildRightClickMenu(null);
+        buildRightClickMenu(drumArticulationMap);
         setComponentPopupMenu(rightClickMenu);
         addListeners();
     }
@@ -116,7 +118,7 @@ public class DrumWidget extends JComponent {
     /**
      * Builds the right click menu
      */
-    protected void buildRightClickMenu(HashMap<String, Byte> drumHashMap) {
+    protected void buildRightClickMenu(DrumArticulationMap dam) {
         rightClickMenu = new JPopupMenu();
         JMenuItem drumMenuItem = new JMenuItem("Tweak " + drumName + "...");
         drumMenuItem.addActionListener(new ActionListener() {
@@ -193,17 +195,9 @@ public class DrumWidget extends JComponent {
         });
         rightClickMenu.add(previousMIDI);
 
-        if (drumHashMap != null) {
-            JMenu articulation = new JMenu("Articulation");
-            Set<String> keySet = drumHashMap.keySet();
-            for (String key : keySet) {
-                JMenuItem temp = new JMenuItem(key + ": " + drumHashMap.get(key));
-                temp.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                    }
-                });
-            }
+        if (dam != null) {
+            ArticulationMenu articulationMenu = new ArticulationMenu("Articulation", dam);
+            rightClickMenu.add(articulationMenu);
         }
 
 
@@ -212,8 +206,12 @@ public class DrumWidget extends JComponent {
             public void popupMenuCanceled(PopupMenuEvent e) {
                 drumPanel.setSelected(DrumWidget.this, false);
             }
-            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {}
-            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {}
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+                drumPanel.setSelected(DrumWidget.this, false);
+            }
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                drumPanel.setSelected(DrumWidget.this, true);
+            }
         });
     }
 
@@ -234,27 +232,22 @@ public class DrumWidget extends JComponent {
             public void mouseMoved(MouseEvent e) { }
         };
         addMouseListener(new MouseListener() {
-            public void mouseClicked(MouseEvent e) {
-                int button = e.getButton();
-                switch (button) {
-                case 1:
-                    break;
-                case 3:
-                    drumPanel.setSelected(DrumWidget.this, true);
-                    showRightClickMenu(e.getX(), e.getY());
-                    break;
-                }
-            }
+            public void mouseClicked(MouseEvent e) {}
             public void mouseEntered(MouseEvent e) {}
             public void mouseExited(MouseEvent e) {}
             public void mousePressed(MouseEvent e) {
+                int button = e.getButton();
                 mouseClickX = e.getX();
                 mouseClickY = e.getY();
-                drumPanel.setSelected(DrumWidget.this, !isSelected());
-                AceDrums.reportStroke(midiID, (byte)127);
+                if (button == 1) {
+                    drumPanel.setSelected(DrumWidget.this, true);//!isSelected());
+                    AceDrums.reportStroke(midiID, (byte)127);
+                }
             }
             public void mouseReleased(MouseEvent e) {
-                drumPanel.setSelected(DrumWidget.this, !isSelected());
+                if (e.getButton() == 1) {
+                    drumPanel.setSelected(DrumWidget.this, false);//!isSelected());
+                }
             }
         });
     }
@@ -304,6 +297,7 @@ public class DrumWidget extends JComponent {
      * @param y Y-Coordinate
      */
     protected void showRightClickMenu(int x, int y) {
+        System.out.println("Show Rightclick menu");
         rightClickMenu.show(this, x, y);
     }
 

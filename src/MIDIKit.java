@@ -7,11 +7,9 @@
 
 package com.adarwin.edrum;
 
-import java.util.HashMap;
-
 class MIDIKit {
 
-    HashMap<String, Byte> snare;
+    DrumArticulationMap snare;
     static String center = "Center";
     static String edge = "Edge";
     static String rimshot = "Rimshot";
@@ -25,10 +23,10 @@ class MIDIKit {
     static String snareTrig = "snareTrig";
     static String snareCtrl = "snareCtrl";
 
-    HashMap<String, Byte> kick;
+    DrumArticulationMap kick;
     static String right = "Right";
 
-    HashMap<String, Byte> hi_hat;
+    DrumArticulationMap hi_hat;
     static String closed_edge = "Closed Edge";
     static String closed_tip = "Closed Tip";
     static String tight_edge = "Tight Edge";
@@ -46,54 +44,54 @@ class MIDIKit {
     static String open_pedal = "Open Pedal";
     static String closed_pedal = "Closed Pedal";
 
-    HashMap<String, Byte> rackTom1;
-    HashMap<String, Byte> rackTom2;
-    HashMap<String, Byte> rackTom3;
+    DrumArticulationMap rackTom1;
+    DrumArticulationMap rackTom2;
+    DrumArticulationMap rackTom3;
 
-    HashMap<String, Byte> floorTom1;
-    HashMap<String, Byte> floorTom2;
+    DrumArticulationMap floorTom1;
+    DrumArticulationMap floorTom2;
     
-    HashMap<String, Byte> ride1;
-    HashMap<String, Byte> ride2;
-    HashMap<String, Byte> ride3;
-    HashMap<String, Byte> ride4;
+    DrumArticulationMap ride1;
+    DrumArticulationMap ride2;
+    DrumArticulationMap ride3;
+    DrumArticulationMap ride4;
     static String ride = "Ride";
     static String bell = "Bell";
     // Edge already defined
 
-    HashMap<String, Byte> cymbal1;
-    HashMap<String, Byte> cymbal2;
-    HashMap<String, Byte> cymbal3;
-    HashMap<String, Byte> cymbal4;
-    HashMap<String, Byte> cymbal5;
-    HashMap<String, Byte> cymbal6;
+    DrumArticulationMap cymbal1;
+    DrumArticulationMap cymbal2;
+    DrumArticulationMap cymbal3;
+    DrumArticulationMap cymbal4;
+    DrumArticulationMap cymbal5;
+    DrumArticulationMap cymbal6;
     static String crash = "Crash";
     static String mute_hit = "Mute Hit";
     static String mute_tail = "Mute Tail";
 
-    HashMap<String, Byte> cowbell;
+    DrumArticulationMap cowbell;
     static String hit = "Hit";
 
     MIDIKit() {
-        snare = new HashMap<String, Byte>();
-        hi_hat = new HashMap<String, Byte>();
-        kick = new HashMap<String, Byte>();
-        rackTom1 = new HashMap<String, Byte>();
-        rackTom2 = new HashMap<String, Byte>();
-        rackTom3 = new HashMap<String, Byte>();
-        floorTom1 = new HashMap<String, Byte>();
-        floorTom2 = new HashMap<String, Byte>();
-        ride1 = new HashMap<String, Byte>();
-        ride2 = new HashMap<String, Byte>();
-        ride3 = new HashMap<String, Byte>();
-        ride4 = new HashMap<String, Byte>();
-        cymbal1 = new HashMap<String, Byte>();
-        cymbal2 = new HashMap<String, Byte>();
-        cymbal3 = new HashMap<String, Byte>();
-        cymbal4 = new HashMap<String, Byte>();
-        cymbal5 = new HashMap<String, Byte>();
-        cymbal6 = new HashMap<String, Byte>();
-        cowbell = new HashMap<String, Byte>();
+        snare = new DrumArticulationMap(center);
+        hi_hat = new DrumArticulationMap(closed_edge);
+        kick = new DrumArticulationMap(right);
+        rackTom1 = new DrumArticulationMap(center);
+        rackTom2 = new DrumArticulationMap(center);
+        rackTom3 = new DrumArticulationMap(center);
+        floorTom1 = new DrumArticulationMap(center);
+        floorTom2 = new DrumArticulationMap(center);
+        ride1 = new DrumArticulationMap(ride);
+        ride2 = new DrumArticulationMap(ride);
+        ride3 = new DrumArticulationMap(ride);
+        ride4 = new DrumArticulationMap(ride);
+        cymbal1 = new DrumArticulationMap(crash);
+        cymbal2 = new DrumArticulationMap(crash);
+        cymbal3 = new DrumArticulationMap(crash);
+        cymbal4 = new DrumArticulationMap(crash);
+        cymbal5 = new DrumArticulationMap(crash);
+        cymbal6 = new DrumArticulationMap(crash);
+        cowbell = new DrumArticulationMap(hit);
 
         buildSnare();
         buildHiHat();
@@ -103,7 +101,8 @@ class MIDIKit {
         buildCymbals();
     }
 
-    byte get(HashMap<String, Byte> drum, String articulation) {
+    static byte get(DrumArticulationMap drum,
+                    String articulation) {
         byte midiValue = 0;
         if (drum != null && articulation != null) {
             midiValue = drum.get(articulation);
