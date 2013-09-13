@@ -98,11 +98,29 @@ class GraphPanel extends JPanel {
             xIncrementor = (rightEdge-leftMargin)/(double)dataLength;
         }
         yIncrementor = (yAxisHeight-topMargin)/(double)maximumY;
+        boolean pointWasPicked = false;
+        int pointSize = 4;
         for (int i = 0; i < dataLength-1; i++) {
-            int x = leftMargin + (int)(i*xIncrementor)-2;
-            int y = (int)(strokeData.get(i)*yIncrementor);
-            y = yAxisHeight-y-2;
-            g.fillOval(x, y, 4, 4);
+            int datum = strokeData.get(i);
+            if (datum == 128) {
+                pointWasPicked = true;
+            } else {
+                if (pointWasPicked)
+                    pointSize = 8;
+                int x = leftMargin + (int)(i*xIncrementor)-(pointSize/2);
+                int y = (int)(datum*yIncrementor);
+                y = yAxisHeight-y-(pointSize/2);
+                if (pointWasPicked) {
+                    g.setColor(Color.blue);
+                    g.fillOval(x, y, pointSize, pointSize);
+                    g.drawString(""+datum, x, y);
+                    g.setColor(Color.black);
+                    pointSize = 4;
+                    pointWasPicked = false;
+                } else {
+                    g.fillOval(x, y, 4, 4);
+                }
+            }
         }
     }
 }
