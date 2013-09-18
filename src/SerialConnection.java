@@ -112,6 +112,11 @@ class SerialConnection {
                                 while (inputStream.available() > 0) {
                                     int datum = inputStream.read();
                                     AceDrums.reportNewDatum(datum);
+                                    if (datum == 128) {
+                                        AceDrums.reportNewDatum(inputStream.read());
+                                    }
+                                    int duration = inputStream.read();
+                                    System.out.println(duration);
                                 }
                             } else {
                                 // We are using 3 here because that is the

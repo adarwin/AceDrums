@@ -20,6 +20,7 @@ class GraphPanel extends JPanel {
     static int maximumY = 127;
     private ArrayList<Integer> strokeData;
     long lastAdditionTime;
+    long firstAdditionTime;
 
 
     public GraphPanel() {
@@ -35,8 +36,12 @@ class GraphPanel extends JPanel {
 
     protected synchronized void addStrokeDatum(int value) {
         long additionTime = System.nanoTime()/1000;
-        if (additionTime-lastAdditionTime > 300000) {
+        if (firstAdditionTime == 0) {
+            firstAdditionTime = additionTime;
+        }
+        if (additionTime-lastAdditionTime > 50000) {//300000) {
             resetStrokeData();
+            firstAdditionTime = 0;
         }
         strokeData.add(value);
         lastAdditionTime = additionTime;
@@ -54,7 +59,7 @@ class GraphPanel extends JPanel {
         int dataLength = strokeData.size();
         // Draw x and y axis
         int topMargin = 10, bottomMargin = 35;
-        int leftMargin = 40, rightMargin = 30;
+        int leftMargin = 30, rightMargin = 30;
         int tickLength = 5;
         int yAxisHeight = (int)height - bottomMargin;
         int rightEdge = (int)width - rightMargin;
@@ -93,6 +98,7 @@ class GraphPanel extends JPanel {
         g.drawString("0", leftMargin-4, yAxisHeight+tickLength+13);
         int centerX = (leftMargin+rightEdge)/2;
         g.drawString("µs", centerX-6, yAxisHeight+tickLength+20);
+        g.drawString("" + (lastAdditionTime-firstAdditionTime), rightEdge-30, yAxisHeight+tickLength+15);
 
         if (dataLength > 0) {
             xIncrementor = (rightEdge-leftMargin)/(double)dataLength;
