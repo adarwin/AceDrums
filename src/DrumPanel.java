@@ -144,5 +144,7 @@ public class DrumPanel extends JPanel {
                                  centerY+yOffsetFromCenter-(height>>1),
                                  width, height);
         }
+        g.drawString("All images copyrighted by Toontrack for use in their " +
+                     "Superior Drummer application", centerX-212, height-15);
     }
 }
