@@ -84,16 +84,20 @@
        if (graphMode) {
          Serial.write(128);
          Serial.write(snare->getCurrentMax());
+         Serial.write(snare->getDatumDuration());
        } else {
          byte data[] = {144, 38, snare->currentValue};
          Serial.write(data, 3);
         }
        digitalWrite(LEDPIN,LOW);
-     } else if (graphMode && snare->currentValue > 0) {
+     } else if (graphMode &&
+                snare->getTimeSinceNonZero() >= 0 &&
+                snare->getTimeSinceNonZero() < 1000) {//snare->currentValue > 0) {
        //currentValue = constrain(currentValue, 0, 200);
        //currentValue = map(currentValue, 0, 200, 0, 127);
        digitalWrite(LEDPIN, HIGH);
        Serial.write(snare->currentValue);
+       Serial.write(snare->getDatumDuration());
        digitalWrite(LEDPIN,LOW);
      }
    }

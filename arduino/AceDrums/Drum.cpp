@@ -24,6 +24,7 @@ int Drum::getCurrentMax() {
 void Drum::readNewValue() {
   reportNewValue(constrain(map(analogRead(pin), 0, 200, 0, 127),
                            0, 127));
+  previousTime = currentTime;
   currentTime = micros();
 }
 
@@ -31,6 +32,28 @@ void Drum::reportNewValue(int value) {
   twoValuesAgo = lastValue;
   lastValue = currentValue;
   currentValue = value;
+  if (currentValue != 0) {
+    lastNonZeroTime = currentTime;
+  }
+}
+
+void Drum::setSensitivity(int value) {
+  sensitivity = value;
+}
+
+unsigned long Drum::getTimeSinceEnding() {
+  return currentTime - endingTime;
+}
+unsigned long Drum::getTimeSinceNonZero() {
+  return currentTime - lastNonZeroTime;
+}
+
+unsigned long Drum::getDatumDuration() {
+  return currentTime - previousTime;
+}
+
+bool Drum::signalHasEnded() {
+  return twoValuesAgo == 0 && lastValue == 0 && currentValue == 0;
 }
 
 bool Drum::encounteredLegitStroke() {
