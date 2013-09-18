@@ -218,26 +218,7 @@ public class AceDrums {
 
         addMenuItem(connectionsMenu, "Stroke Graph...", new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                graphDialog = new JDialog(frame, "Stroke Graph", true);
-                graphDialog.addWindowListener(new WindowListener() {
-                    public void windowActivated(WindowEvent e) {
-                        serialConnection.requestGraphMode(true);
-                    }
-                    public void windowClosed(WindowEvent e) {
-                    }
-                    public void windowClosing(WindowEvent e) {}
-                    public void windowDeactivated(WindowEvent e) {
-                        serialConnection.requestGraphMode(false);
-                    }
-                    public void windowDeiconified(WindowEvent e) {}
-                    public void windowIconified(WindowEvent e) {}
-                    public void windowOpened(WindowEvent e) {}
-                });
-                graphPanel = new GraphPanel();
-                graphDialog.setContentPane(graphPanel);
-                graphDialog.setSize(new Dimension(400, 300));
-                graphDialog.setLocationRelativeTo(null);
-                graphDialog.setVisible(true);
+                graphDialog = new GraphDialog(frame);
             }
         });
 
@@ -246,6 +227,9 @@ public class AceDrums {
         menuBar.add(setMenu);
         menuBar.add(viewMenu);
         menuBar.add(connectionsMenu);
+    }
+    protected static void requestGraphMode(boolean value) {
+        serialConnection.requestGraphMode(value);
     }
     private static void addMenuItem(JMenu menu, JMenuItem menuItem, ActionListener listener) {
         menuItem.addActionListener(listener);
