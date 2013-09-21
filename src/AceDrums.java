@@ -61,7 +61,7 @@ public class AceDrums {
     private static MidiOutput midiOutput;
     private static MIDIKit midiKit;
     private static SerialConnection serialConnection;
-    private static JDialog graphDialog;
+    private static GraphDialog graphDialog;
     private static GraphPanel graphPanel;
     private static boolean DEBUG = true;
 
@@ -127,8 +127,8 @@ public class AceDrums {
     }
 
     protected static void reportNewDatum(int newDatum) {
-        if (graphPanel != null) {
-            graphPanel.addStrokeDatum(newDatum);
+        if (graphDialog != null) {
+            graphDialog.addStrokeDatum(newDatum);
         }
     }
 
