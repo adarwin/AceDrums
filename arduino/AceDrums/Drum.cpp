@@ -1,6 +1,8 @@
 #include "Drum.h"
 #include "Arduino.h"
 
+
+
 Drum::Drum(int pin) : pin(pin), currentValue(7), lastValue(0),
                       twoValuesAgo(0), threshold(5),
                       thresholdPercentage(.30), 
@@ -13,6 +15,10 @@ int Drum::calculateSlope() {
   previousSlope = slope;
   slope = (currentValue-twoValuesAgo)/2;
   return slope;
+}
+
+int Drum::getArticulation() {
+  return CENTER;
 }
 
 int Drum::getCurrentMax() {

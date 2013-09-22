@@ -15,6 +15,12 @@
  #define HIHAT 2        // pin 2
  #define SNARE_RIM 3    // pin 3
  #define PADNUM 1
+ 
+ #define NORMAL_STROKE 128
+ #define GRAPH_STROKE 129
+ #define GRAPH_DATA 130
+ 
+
 
  // Define various ADC prescaler --> www.marulaberry.co.za/index.php/tutorials/code/arduino-adc/
  const unsigned char PS_16 = (1 << ADPS2);
@@ -82,22 +88,23 @@
 
        digitalWrite(LEDPIN, HIGH);
        if (graphMode) {
-         Serial.write(128);
-         Serial.write(snare->getCurrentMax());
-         Serial.write(snare->getDatumDuration());
+         byte data[] = {GRAPH_STROKE, snare->getArticulation(),
+                        snare->getCurrentMax(), snare->getDatumDuration()};
+         Serial.write(data, 4);
        } else {
-         byte data[] = {144, 38, snare->currentValue};
-         Serial.write(data, 3);
+         byte data[] = {NORMAL_STROKE, snare->getArticulation(),
+                        snare->currentValue, snare->getDatumDuration()};
+         Serial.write(data, 4);
         }
        digitalWrite(LEDPIN,LOW);
      } else if (graphMode &&
                 snare->getTimeSinceNonZero() >= 0 &&
-                snare->getTimeSinceNonZero() < 1000) {//snare->currentValue > 0) {
+                snare->getTimeSinceNonZero() < 1000) {
        //currentValue = constrain(currentValue, 0, 200);
        //currentValue = map(currentValue, 0, 200, 0, 127);
        digitalWrite(LEDPIN, HIGH);
-       Serial.write(snare->currentValue);
-       Serial.write(snare->getDatumDuration());
+       byte data[] = {GRAPH_DATA, snare->currentValue, snare->getDatumDuration()};
+       Serial.write(data, 3);
        digitalWrite(LEDPIN,LOW);
      }
    }

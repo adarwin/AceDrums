@@ -41,6 +41,10 @@ class SerialConnection {
     private OutputStream outputStream;
     private boolean inGraphMode = false;
 
+    private static int NORMAL_STROKE = 128;
+    private static int GRAPH_STROKE = 129;
+    private static int GRAPH_DATA = 130;
+
 
     protected boolean setPortIdentifier(String portName) {
         try {
@@ -106,65 +110,80 @@ class SerialConnection {
                 public void serialEvent(SerialPortEvent event) {
                     if (event.getEventType() ==
                         SerialPortEvent.DATA_AVAILABLE) {
-                        logger.log(Level.INFO, "Got serial data");
+                        //logger.log(Level.INFO, "Got serial data");
                         try {
                             if (inGraphMode) {
+                                int currentByte;
                                 while (inputStream.available() > 0) {
-                                    int datum = inputStream.read();
-                                    AceDrums.reportNewDatum(datum);
-                                    if (datum == 128) {
-                                        AceDrums.reportNewDatum(inputStream.read());
+                                    currentByte = inputStream.read();
+                                    if (currentByte == GRAPH_STROKE) {
+                                        // Read the next 3
+                                        int[] data = readSerialData(inputStream, new int[3]);
+                                        AceDrums.reportStroke((byte)data[0], (byte)data[1]);
+                                    } else if (currentByte == GRAPH_DATA) {
+                                        // Read the next 2
+                                        int[] data = readSerialData(inputStream, new int[2]);
+                                        AceDrums.reportNewDatum((byte)data[0]);
                                     }
-                                    int duration = inputStream.read();
-                                    System.out.println(duration);
                                 }
                             } else {
-                                // We are using 3 here because that is the
-                                //number of bytes per midi message.
-                                byte[] rawMidiData = new byte[3];
-                                inputStream.read(rawMidiData, 0, 3);
-                                short[] fixedMidiData = new short[3];
-                                for (byte i = 0; i < 3; i++) {
-                                    if (rawMidiData[i] < 0) {
-                                        fixedMidiData[i] = (short)(rawMidiData[i] - Byte.MIN_VALUE + Byte.MAX_VALUE + 1);
-                                    } else {
-                                        fixedMidiData[i] = rawMidiData[i];
-                                    }
+                                int[] serialData = readSerialData(inputStream,
+                                                                  new int[4]);
+                                if (serialData[0] == NORMAL_STROKE) {
+                                    AceDrums.reportStroke((byte)serialData[1],
+                                                          (byte)serialData[2]);
+                                } else if (serialData[0] == GRAPH_STROKE) {
+                                    logger.log(Level.WARNING, "Encountered a "+
+                                               "graph stroke when it should "+
+                                               "have been a normal stroke");
+                                } else if (serialData[0] == GRAPH_DATA) {
+                                    logger.log(Level.WARNING, "Encountered " +
+                                               "graph data when it should " +
+                                               "have been a normal stroke");
                                 }
-                                for (byte i = 0; i < 3; i++) {
-                                    System.out.println(rawMidiData[i] + " --> " + fixedMidiData[i]);
-                                }
-                                System.out.println();
-                                AceDrums.reportStroke(rawMidiData[1], rawMidiData[2]);
                             }
                         } catch (IOException ex) {
-                            // TODO: Don't leave this blank
-                            logger.log(Level.SEVERE, "Failed to read data from serial port");
+                            logger.log(Level.SEVERE, "Failed to read data " +
+                                                     "from serial port");
                         }
                     }
                 }
             });
             logger.log(Level.INFO, "Added serial event listener");
             serialPort.notifyOnDataAvailable(true);
-            logger.log(Level.INFO, "Set serial port to notify when data is available");
+            logger.log(Level.INFO, "Set serial port to notify when data is " +
+                                   "available");
         } catch (PortInUseException ex) {
-            // TODO: Don't leave this blank
             logger.log(Level.SEVERE, "Port is currently in use");
             return false;
         } catch (UnsupportedCommOperationException ex) {
-            // TODO: Don't leave this blank
-            logger.log(Level.SEVERE, "Unsuppored Comm Operation. Make sure you are using a valid data rate");
+            logger.log(Level.SEVERE, "Unsuppored Comm Operation. Make sure " +
+                                     "you are using a valid data rate");
             return false;
         } catch (IOException ex) {
-            // TODO: Don't leave this blank
             logger.log(Level.SEVERE, "IO Exception");
             return false;
         } catch (TooManyListenersException ex) {
-            // TODO: Don't leave this blank
             logger.log(Level.SEVERE, "Too many listeners");
             return false;
         }
         return true;
+    }
+    private int[] readSerialData(InputStream inputStream, int[] dataTargetArray) {
+        int lastIndex = dataTargetArray.length - 1;
+        int dataIndex = 0;
+        int currentDatum;
+        try {
+            while (inputStream.available() > 0 && dataIndex <= lastIndex) {
+                currentDatum = inputStream.read();
+                if (currentDatum != 0) {
+                    dataTargetArray[dataIndex++] = currentDatum;
+                }
+            }
+        } catch (IOException ex) {
+            logger.log(Level.SEVERE, "Failed to read data from serial port");
+        }
+        return dataTargetArray;
     }
     protected void closeSerialPort() {
         logger.log(Level.INFO, "Attempting to close serial port: " +
