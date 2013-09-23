@@ -45,6 +45,7 @@ class Drum {
     void setSensitivity(int);
     void setThreshold(double);
     int getArticulation();
+    bool hasNonZeroValue();
     
   protected:
     int threshold;

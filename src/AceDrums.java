@@ -142,9 +142,10 @@ public class AceDrums {
         frame = new JFrame("AceDrums");
     }
 
-    protected static void reportNewDatum(int newDatum) {
+    protected static void reportNewDatum(int type, int newDatum,
+                                         int timeSinceLastDatum) {
         if (graphDialog != null) {
-            graphDialog.addStrokeDatum(newDatum);
+            graphDialog.addStrokeDatum(type, newDatum, timeSinceLastDatum);
         }
     }
 

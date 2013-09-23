@@ -44,6 +44,10 @@ void Drum::reportNewValue(int value) {
   }
 }
 
+bool Drum::hasNonZeroValue() {
+  return twoValuesAgo > 0 || lastValue > 0 || currentValue > 0;
+}
+
 void Drum::setSensitivity(int value) {
   sensitivity = value;
 }

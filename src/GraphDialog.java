@@ -95,8 +95,8 @@ class GraphDialog extends JDialog {
         westPane = new JPanel();
     }
 
-    protected void addStrokeDatum(int value) {
-        graphPanel.addStrokeDatum(value);
+    protected void addStrokeDatum(int type, int newDatum, int duration) {
+        graphPanel.addStrokeDatum(type, newDatum, duration);
     }
 
     private void configureLayouts() {

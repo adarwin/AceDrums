@@ -90,28 +90,25 @@
      snare->readNewValue();
      snare->calculateSlope();
      int currentMax = snare->getCurrentMax();
+     if (graphMode &&
+         snare->getTimeSinceNonZero() >= 0 &&
+         (snare->hasNonZeroValue() || snare->getTimeSinceNonZero() < timeout)) {
+       byte data[] = {GRAPH_DATA, snare->currentValue, snare->getDatumDuration()};
+       Serial.write(data, 3);
+     }
      if (snare->encounteredLegitStroke()) {
        snare->updateStrokeValues();
 
        digitalWrite(LEDPIN, HIGH);
        if (graphMode) {
          byte data[] = {GRAPH_STROKE, snare->getArticulation(),
-                        snare->getCurrentMax(), snare->getDatumDuration()};
+                        snare->getCurrentMax(), 1};//snare->getDatumDuration()};
          Serial.write(data, 4);
        } else {
          byte data[] = {NORMAL_STROKE, snare->getArticulation(),
-                        snare->currentValue, snare->getDatumDuration()};
+                        snare->getCurrentMax(), snare->getDatumDuration()};
          Serial.write(data, 4);
         }
-       digitalWrite(LEDPIN,LOW);
-     } else if (graphMode &&
-                snare->getTimeSinceNonZero() >= 0 &&
-                snare->getTimeSinceNonZero() < timeout) {
-       //currentValue = constrain(currentValue, 0, 200);
-       //currentValue = map(currentValue, 0, 200, 0, 127);
-       digitalWrite(LEDPIN, HIGH);
-       byte data[] = {GRAPH_DATA, snare->currentValue, snare->getDatumDuration()};
-       Serial.write(data, 3);
        digitalWrite(LEDPIN,LOW);
      }
    }
@@ -185,7 +182,7 @@
    byte variable = 0, value = 0;
    while (Serial.available() > 0) {
      currentByte = Serial.read();
-     if (currentByte == 0) {
+     if (currentByte == 0 && variable != SET_TIMEOUT) {
        continue;
      }
      if (variable == 0) {

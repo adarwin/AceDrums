@@ -42,8 +42,8 @@ class SerialConnection {
     private boolean inGraphMode = false;
 
     private static int NORMAL_STROKE = 128;
-    private static int GRAPH_STROKE = 129;
-    private static int GRAPH_DATA = 130;
+    protected static int GRAPH_STROKE = 129;
+    protected static int GRAPH_DATA = 130;
     private static int SET_GRAPH_MODE = 131;
     private static int SET_THRESHOLD = 132;
     private static int SET_SENSITIVITY = 133;
@@ -143,20 +143,34 @@ class SerialConnection {
                 public void serialEvent(SerialPortEvent event) {
                     if (event.getEventType() ==
                         SerialPortEvent.DATA_AVAILABLE) {
-                        //logger.log(Level.INFO, "Got serial data");
                         try {
                             if (inGraphMode) {
                                 int currentByte;
                                 while (inputStream.available() > 0) {
                                     currentByte = inputStream.read();
                                     if (currentByte == GRAPH_STROKE) {
-                                        // Read the next 3
+                                        /*
+                                        Read the next 3
+                                        Index 0 = articulation / MIDI note
+                                        Index 1 = velocity
+                                        Index 2 = time since last datum
+                                        */
                                         int[] data = readSerialData(inputStream, new int[3], false);
-                                        AceDrums.reportStroke((byte)data[0], (byte)data[1]);
+                                        System.out.println("Adding graph stroke with value: " + data[1]);
+                                        AceDrums.reportStroke((byte)data[0],
+                                                              (byte)data[1]);
+                                        AceDrums.reportNewDatum(GRAPH_STROKE,
+                                                                data[1],
+                                                                data[2]);
                                     } else if (currentByte == GRAPH_DATA) {
+                                        /*
+                                        Read the next 2
+                                        Index 0 = velocity
+                                        Index 1 = time since last datum
+                                        */
                                         // Read the next 2
                                         int[] data = readSerialData(inputStream, new int[2], true);
-                                        AceDrums.reportNewDatum((byte)data[0]);
+                                        AceDrums.reportNewDatum(GRAPH_DATA, data[0], data[1]);
                                     }
                                 }
                             } else {

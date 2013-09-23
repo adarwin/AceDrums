@@ -18,24 +18,29 @@ import java.util.ArrayList;
 class GraphPanel extends JPanel {
     private static final long serialVersionUID = 1L;
     static int maximumY = 127;
-    private ArrayList<Integer> strokeData;
+    private ArrayList<StrokeDatum> strokeData;
+    private long totalStrokeDataTime;
+    private int numberOfGraphStrokes;
     long lastAdditionTime;
     long firstAdditionTime;
 
 
     public GraphPanel() {
         super();
-        strokeData = new ArrayList<Integer>();
+        strokeData = new ArrayList<StrokeDatum>();
         setLayout(null);
     }
 
 
     private synchronized void resetStrokeData() {
-        strokeData = new ArrayList<Integer>();
+        strokeData.clear();
+        totalStrokeDataTime = 0;
+        numberOfGraphStrokes = 0;
     }
 
-    protected synchronized void addStrokeDatum(int value) {
-        long additionTime = System.nanoTime()/1000;
+    protected synchronized void addStrokeDatum(int type, int newDatum,
+                                               int timeSinceLastDatum) {
+        long additionTime = System.nanoTime()/1000; // Convert to microseconds
         if (firstAdditionTime == 0) {
             firstAdditionTime = additionTime;
         }
@@ -43,7 +48,11 @@ class GraphPanel extends JPanel {
             resetStrokeData();
             firstAdditionTime = 0;
         }
-        strokeData.add(value);
+        totalStrokeDataTime += timeSinceLastDatum;
+        if (type == StrokeDatum.GRAPH_STROKE) {
+            numberOfGraphStrokes++;
+        }
+        strokeData.add(new StrokeDatum(type, newDatum, totalStrokeDataTime));
         lastAdditionTime = additionTime;
         repaint();
     }
@@ -52,11 +61,16 @@ class GraphPanel extends JPanel {
     protected synchronized void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.setColor(Color.black);
+        int dataLength = strokeData.size();
+        long averageDuration = 0;
+        if (dataLength > numberOfGraphStrokes) {
+        averageDuration = totalStrokeDataTime/
+                          (dataLength-numberOfGraphStrokes);
+        }
         double xIncrementor = 1;
         double yIncrementor = 1;
         double width = (double)getWidth();
         double height = (double)getHeight();
-        int dataLength = strokeData.size();
         // Draw x and y axis
         int topMargin = 10, bottomMargin = 35;
         int leftMargin = 30, rightMargin = 30;
@@ -97,35 +111,45 @@ class GraphPanel extends JPanel {
         g.drawString("127", leftMargin-tickLength-25, topMargin+5);
         g.drawString("0", leftMargin-4, yAxisHeight+tickLength+13);
         int centerX = (leftMargin+rightEdge)/2;
-        g.drawString("µs", centerX-6, yAxisHeight+tickLength+20);
-        g.drawString("" + (lastAdditionTime-firstAdditionTime), rightEdge-30, yAxisHeight+tickLength+15);
+        g.drawString("ms", centerX-6, yAxisHeight+tickLength+20);
+        g.drawString("" + (totalStrokeDataTime/100),
+                     rightEdge-30, yAxisHeight+tickLength+15);
+        g.drawString("Average Sample Length = " + averageDuration + " µs",
+                     0, (int)height);
 
         if (dataLength > 0) {
-            xIncrementor = (rightEdge-leftMargin)/(double)dataLength;
+            //xIncrementor = (rightEdge-leftMargin)/(double)dataLength;
+            xIncrementor = (rightEdge-leftMargin)/(double)totalStrokeDataTime;
         }
         yIncrementor = (yAxisHeight-topMargin)/(double)maximumY;
         boolean pointWasPicked = false;
         int pointSize = 4;
-        for (int i = 0; i < dataLength-1; i++) {
-            int datum = strokeData.get(i);
-            if (datum == 128) {
-                pointWasPicked = true;
+        for (StrokeDatum datum : strokeData) {
+        //for (int i = 0; i < dataLength-1; i++) {
+            //int datum = strokeData.get(i);
+            int type = datum.getType();
+            int value = datum.getValue();
+            //int value = strokeData.getValue();
+            int x = leftMargin + (int)(datum.getTimePoint()*xIncrementor);
+            int y = yAxisHeight - (int)(value*yIncrementor);
+            if (type == StrokeDatum.GRAPH_STROKE) {
+                pointSize = 8;
+                g.setColor(Color.blue);
+                int backwardOffset = (int)(4*averageDuration*xIncrementor);
+                int forwardOffset = (int)(2*averageDuration*xIncrementor);
+                g.drawLine(x - backwardOffset, y,
+                           x + forwardOffset, y);
+                g.drawLine(x, y-(int)(100*xIncrementor), x, y);
+                //g.fillOval(x, y, pointSize, pointSize);
+                g.drawString("" + value, x + forwardOffset, y);
+                g.setColor(Color.black);
+                pointSize = 4;
+                pointWasPicked = false;
             } else {
-                if (pointWasPicked)
-                    pointSize = 8;
-                int x = leftMargin + (int)(i*xIncrementor)-(pointSize/2);
-                int y = (int)(datum*yIncrementor);
-                y = yAxisHeight-y-(pointSize/2);
-                if (pointWasPicked) {
-                    g.setColor(Color.blue);
-                    g.fillOval(x, y, pointSize, pointSize);
-                    g.drawString(""+datum, x, y);
-                    g.setColor(Color.black);
-                    pointSize = 4;
-                    pointWasPicked = false;
-                } else {
-                    g.fillOval(x, y, 4, 4);
-                }
+                pointSize = 4;
+                x -= pointSize/2;
+                y -= pointSize/2;
+                g.fillOval(x, y, pointSize, pointSize);
             }
         }
     }
