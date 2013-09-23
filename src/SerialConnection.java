@@ -44,6 +44,10 @@ class SerialConnection {
     private static int NORMAL_STROKE = 128;
     private static int GRAPH_STROKE = 129;
     private static int GRAPH_DATA = 130;
+    private static int SET_GRAPH_MODE = 131;
+    private static int SET_THRESHOLD = 132;
+    private static int SET_SENSITIVITY = 133;
+    private static int SET_TIMEOUT = 134;
 
 
     protected boolean setPortIdentifier(String portName) {
@@ -52,7 +56,6 @@ class SerialConnection {
             portIdentifier = CommPortIdentifier.getPortIdentifier(portName);
             openSerialPort();
         } catch (NoSuchPortException ex) {
-            // TODO: Do something here
             logger.log(Level.SEVERE, "No such port exists");
             return false;
         }
@@ -69,22 +72,52 @@ class SerialConnection {
         }
         return portList;
     }
+    protected boolean setTimeout(int value) {
+        return setValueOnArduino(SET_TIMEOUT, value/100);
+    }
+    protected boolean setThreshold(int value) {
+        return setValueOnArduino(SET_THRESHOLD, value);
+    }
+    protected boolean setSensitivity(int value) {
+        return setValueOnArduino(SET_SENSITIVITY, value/10);
+    }
     protected boolean requestGraphMode(boolean value) {
-        boolean output = false;
+        byte graphModeValue;
+        if (value) {
+            graphModeValue = 0x01;
+        } else {
+            graphModeValue = 0x00;
+        }
+        boolean successful = setValueOnArduino(SET_GRAPH_MODE, graphModeValue);
+        if (successful) {
+            inGraphMode = value;
+        }
+        return successful;
+    }
+    private boolean setValueOnArduino(int variable, int value) {
+        boolean successful = false;
+        if (outputStream != null) {
+            if (value > 255) {
+                // Split into two bytes
+            }
+            byte[] output = new byte[2];
+            output[0] = (byte)variable;
+            output[1] = (byte)value;
+            successful = sendByteArrayToArduino(output);
+        }
+        return successful;
+    }
+    private boolean sendByteArrayToArduino(byte[] byteArray) {
+        boolean successful = false;
         if (outputStream != null) {
             try {
-                if (value) {
-                    outputStream.write(0x01);
-                } else {
-                    outputStream.write(0x00);
-                }
-                inGraphMode = value;
-                output = true;
+                outputStream.write(byteArray);
+                successful = true;
             } catch (IOException ex) {
                 logger.log(Level.SEVERE, "Failed to write data to serial port");
             }
         }
-        return output;
+        return successful;
     }
     private boolean openSerialPort() {
         try {
@@ -118,17 +151,17 @@ class SerialConnection {
                                     currentByte = inputStream.read();
                                     if (currentByte == GRAPH_STROKE) {
                                         // Read the next 3
-                                        int[] data = readSerialData(inputStream, new int[3]);
+                                        int[] data = readSerialData(inputStream, new int[3], false);
                                         AceDrums.reportStroke((byte)data[0], (byte)data[1]);
                                     } else if (currentByte == GRAPH_DATA) {
                                         // Read the next 2
-                                        int[] data = readSerialData(inputStream, new int[2]);
+                                        int[] data = readSerialData(inputStream, new int[2], true);
                                         AceDrums.reportNewDatum((byte)data[0]);
                                     }
                                 }
                             } else {
                                 int[] serialData = readSerialData(inputStream,
-                                                                  new int[4]);
+                                                                  new int[4], false);
                                 if (serialData[0] == NORMAL_STROKE) {
                                     AceDrums.reportStroke((byte)serialData[1],
                                                           (byte)serialData[2]);
@@ -169,14 +202,14 @@ class SerialConnection {
         }
         return true;
     }
-    private int[] readSerialData(InputStream inputStream, int[] dataTargetArray) {
+    private int[] readSerialData(InputStream inputStream, int[] dataTargetArray, boolean zeroIsValid) {
         int lastIndex = dataTargetArray.length - 1;
         int dataIndex = 0;
         int currentDatum;
         try {
             while (inputStream.available() > 0 && dataIndex <= lastIndex) {
                 currentDatum = inputStream.read();
-                if (currentDatum != 0) {
+                if (zeroIsValid || currentDatum != 0) {
                     dataTargetArray[dataIndex++] = currentDatum;
                 }
             }

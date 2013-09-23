@@ -43,6 +43,7 @@ class Drum {
     unsigned long getTimeSinceNonZero();
     unsigned long getDatumDuration();
     void setSensitivity(int);
+    void setThreshold(double);
     int getArticulation();
     
   protected:

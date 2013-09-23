@@ -7,7 +7,7 @@
  #include "Drum.h"
  // Declare macros
  #define LEDPIN 13
- #define THRESHOLDPERCENTAGE .30
+ //#define THRESHOLDPERCENTAGE .30
  #define THRESHOLD 10
  #define JUMP_THRESHOLD 50
  #define KICK 0         // pin 0
@@ -19,6 +19,11 @@
  #define NORMAL_STROKE 128
  #define GRAPH_STROKE 129
  #define GRAPH_DATA 130
+ 
+ #define SET_GRAPH_MODE 131
+ #define SET_THRESHOLD 132
+ #define SET_SENSITIVITY 133
+ #define SET_TIMEOUT 134
  
 
 
@@ -40,6 +45,8 @@
  int strokeValue;
  int previousStrokeValue;
  boolean graphMode = false;
+ 
+ unsigned int timeout = 1000;
  
  int sensorValue;
  int downTime;
@@ -99,7 +106,7 @@
        digitalWrite(LEDPIN,LOW);
      } else if (graphMode &&
                 snare->getTimeSinceNonZero() >= 0 &&
-                snare->getTimeSinceNonZero() < 1000) {
+                snare->getTimeSinceNonZero() < timeout) {
        //currentValue = constrain(currentValue, 0, 200);
        //currentValue = map(currentValue, 0, 200, 0, 127);
        digitalWrite(LEDPIN, HIGH);
@@ -174,20 +181,28 @@
   if (Serial.available()) serialEvent();
  }
  void serialEvent() {
-   // Put in graph mode
-   //if (Serial.available() > 0) {
-     if (Serial.read()) {
-       graphMode = true;
-     } else {
-       graphMode = false;
+   byte currentByte;
+   byte variable = 0, value = 0;
+   while (Serial.available() > 0) {
+     currentByte = Serial.read();
+     if (currentByte == 0) {
+       continue;
      }
-   //}   
-
-   /*
-   byte numBytes = Serial.available();
-   if (numBytes > 0) {
-     byte bytes[] = new byte[numBytes];
-     Serial.readBytes(bytes, numBytes);
+     if (variable == 0) {
+       variable = currentByte;
+     } else if (value == 0) {
+       value = currentByte;
+     } else {
+       break;
+     }
    }
-   */
+   if (variable == SET_GRAPH_MODE) {
+     graphMode = value == 1;
+   } else if (variable == SET_THRESHOLD) {
+     snare->setThreshold((double)value/100);
+   } else if (variable == SET_SENSITIVITY) {
+     snare->setSensitivity(value*10);
+   } else if (variable == SET_TIMEOUT) {
+     timeout = value * 100;
+   }
  }

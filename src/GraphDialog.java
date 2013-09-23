@@ -11,6 +11,8 @@ import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Graphics;
 import javax.swing.JComponent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 import java.awt.Point;
 import javax.swing.JSlider;
 import javax.swing.SwingConstants;
@@ -113,6 +115,13 @@ class GraphDialog extends JDialog {
         thresholdSlider.setSnapToTicks(true);
         thresholdSlider.setMajorTickSpacing(10);
         thresholdSlider.setMinorTickSpacing(5);
+        thresholdSlider.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                if (!thresholdSlider.getValueIsAdjusting()) {
+                    AceDrums.setThreshold(thresholdSlider.getValue());
+                }
+            }
+        });
 
         sensitivitySlider = new JSlider(SwingConstants.HORIZONTAL,
                                         SENSITIVITY_MIN, SENSITIVITY_MAX,
@@ -121,7 +130,15 @@ class GraphDialog extends JDialog {
         sensitivitySlider.setPaintLabels(true);
         sensitivitySlider.setSnapToTicks(true);
         sensitivitySlider.setMajorTickSpacing(100);
-        sensitivitySlider.setMinorTickSpacing(25);
+        sensitivitySlider.setMinorTickSpacing(20);
+        sensitivitySlider.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                if (!sensitivitySlider.getValueIsAdjusting()) {
+                    AceDrums.setSensitivity(sensitivitySlider.getValue());
+                }
+            }
+        });
+
         timeoutSlider = new JSlider(SwingConstants.HORIZONTAL,
                                     TIMEOUT_MIN, TIMEOUT_MAX,
                                     TIMEOUT_DEFAULT);
@@ -130,6 +147,13 @@ class GraphDialog extends JDialog {
         timeoutSlider.setSnapToTicks(true);
         timeoutSlider.setMajorTickSpacing(1000);
         timeoutSlider.setMinorTickSpacing(500);
+        timeoutSlider.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                if (!timeoutSlider.getValueIsAdjusting()) {
+                    AceDrums.setTimeout(timeoutSlider.getValue());
+                }
+            }
+        });
     }
 
     private void addComponentsToContainers() {

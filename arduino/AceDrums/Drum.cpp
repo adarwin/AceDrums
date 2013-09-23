@@ -7,7 +7,8 @@ Drum::Drum(int pin) : pin(pin), currentValue(7), lastValue(0),
                       twoValuesAgo(0), threshold(5),
                       thresholdPercentage(.30), 
                       slope(0), strokeTime(0), previousStrokeTime(0),
-                      strokeValue(0), previousStrokeValue(0) { }
+                      strokeValue(0), previousStrokeValue(0),
+                      sensitivity(200) { }
                       
 Drum::~Drum() { }
 
@@ -28,7 +29,7 @@ int Drum::getCurrentMax() {
 }
 
 void Drum::readNewValue() {
-  reportNewValue(constrain(map(analogRead(pin), 0, 200, 0, 127),
+  reportNewValue(constrain(map(analogRead(pin), 0, sensitivity, 0, 127),
                            0, 127));
   previousTime = currentTime;
   currentTime = micros();
@@ -45,6 +46,9 @@ void Drum::reportNewValue(int value) {
 
 void Drum::setSensitivity(int value) {
   sensitivity = value;
+}
+void Drum::setThreshold(double value) {
+  thresholdPercentage = value;
 }
 
 unsigned long Drum::getTimeSinceEnding() {

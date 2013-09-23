@@ -118,6 +118,22 @@ public class AceDrums {
         showGUI();
     }
 
+    protected static void setThreshold(int value) {
+        if (!serialConnection.setThreshold(value)) {
+            logger.log(Level.WARNING, "Failed to set threshold to " + value);
+        }
+    }
+    protected static void setSensitivity(int value) {
+        if (!serialConnection.setSensitivity(value)) {
+            logger.log(Level.WARNING, "Failed to set sensitivity to " + value);
+        }
+    }
+    protected static void setTimeout(int value) {
+        if (!serialConnection.setTimeout(value)) {
+            logger.log(Level.WARNING, "Failed to set timeout to " + value);
+        }
+    }
+
     private static void initializeGlobalVariables() {
         MidiSystem.initMidiSystem("AceDrums", "SuperiorDrummer");
         midiOutput = MidiSystem.openMidiOutput(0);
