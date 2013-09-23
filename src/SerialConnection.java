@@ -73,7 +73,7 @@ class SerialConnection {
         return portList;
     }
     protected boolean setTimeout(int value) {
-        return setValueOnArduino(SET_TIMEOUT, value/100);
+        return setValueOnArduino(SET_TIMEOUT, value);
     }
     protected boolean setThreshold(int value) {
         return setValueOnArduino(SET_THRESHOLD, value);

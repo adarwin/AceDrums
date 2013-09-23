@@ -8,6 +8,8 @@
 package com.adarwin.edrum;
 
 import java.awt.Dimension;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import java.awt.Insets;
 import java.awt.Graphics;
 import javax.swing.JComponent;
@@ -46,8 +48,8 @@ class GraphDialog extends JDialog {
     private static int THRESHOLD_DEFAULT = 30;
     private static int THRESHOLD_MIN = 0;
     private static int TIMEOUT_MIN = 0;
-    private static int TIMEOUT_DEFAULT = 1000;
-    private static int TIMEOUT_MAX = 10000;
+    private static int TIMEOUT_DEFAULT = 5;
+    private static int TIMEOUT_MAX = 100;
 
     private final int TOP_MARGIN = 30;
     private final int BOTTOM_MARGIN = 10;
@@ -107,6 +109,13 @@ class GraphDialog extends JDialog {
     private void buildComponents() {
         testButton = new JButton("Test Button");
         resetButton = new JButton("Reset to Defaults");
+        resetButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                thresholdSlider.setValue(THRESHOLD_DEFAULT);
+                sensitivitySlider.setValue(SENSITIVITY_DEFAULT);
+                timeoutSlider.setValue(TIMEOUT_DEFAULT);
+            }
+        });
         thresholdSlider = new JSlider(SwingConstants.HORIZONTAL,
                                       THRESHOLD_MIN, THRESHOLD_MAX,
                                       THRESHOLD_DEFAULT);
@@ -145,8 +154,8 @@ class GraphDialog extends JDialog {
         timeoutSlider.setPaintTicks(true);
         timeoutSlider.setPaintLabels(true);
         timeoutSlider.setSnapToTicks(true);
-        timeoutSlider.setMajorTickSpacing(1000);
-        timeoutSlider.setMinorTickSpacing(500);
+        timeoutSlider.setMajorTickSpacing(10);
+        timeoutSlider.setMinorTickSpacing(5);
         timeoutSlider.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 if (!timeoutSlider.getValueIsAdjusting()) {
@@ -174,7 +183,7 @@ class GraphDialog extends JDialog {
                                      Integer.toString(SENSITIVITY_MAX));
 
         // Add row 3
-        row = addSliderToOptionsPane("Timeout (µs)", timeoutSlider, row,
+        row = addSliderToOptionsPane("Timeout (ms)", timeoutSlider, row,
                                      Integer.toString(TIMEOUT_MIN),
                                      Integer.toString(TIMEOUT_MAX));
 

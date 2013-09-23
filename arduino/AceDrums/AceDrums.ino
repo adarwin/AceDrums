@@ -77,11 +77,11 @@
    shouldTriggerKick = false;
    
   // set up the ADC
-  //ADCSRA &= ~PS_128;  // remove bits set by Arduino library
+  ADCSRA &= ~PS_128;  // remove bits set by Arduino library
   
   // you can choose a prescaler from above.
   // PS_16, PS_32, PS_64 or PS_128
-  //ADCSRA |= PS_16;    // set our own prescaler to 16 
+  ADCSRA |= PS_16;    // set our own prescaler to 16 
  }
  
  void loop()
@@ -203,6 +203,6 @@
    } else if (variable == SET_SENSITIVITY) {
      snare->setSensitivity(value*10);
    } else if (variable == SET_TIMEOUT) {
-     timeout = value * 100;
+     timeout = value * 1000;
    }
  }
