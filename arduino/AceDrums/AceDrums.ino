@@ -7,13 +7,6 @@
  #include "Drum.h"
  // Declare macros
  #define LEDPIN 13
- //#define THRESHOLDPERCENTAGE .30
- #define THRESHOLD 10
- #define JUMP_THRESHOLD 50
- #define KICK 0         // pin 0
- #define SNARE_HEAD 1   // pin 1
- #define HIHAT 2        // pin 2
- #define SNARE_RIM 3    // pin 3
  #define PADNUM 1
  
  #define NORMAL_STROKE 128
@@ -36,45 +29,17 @@
  // Declare global variables
  Drum* snare;
  
- int currentValue;
- int lastValue;
- int twoValuesAgo;
- int slope;
- unsigned long strokeTime;
- unsigned long previousStrokeTime;
- int strokeValue;
- int previousStrokeValue;
  boolean graphMode = false;
  
  unsigned int timeout = 1000;
  
- int sensorValue;
- int downTime;
- int previousMicros;
- long currentMicros;
  
- int snareHeadMax;
- int kickMax;
- int hiHatMax;
- int lastSnareHead;
- int lastKick;
- int lastHiHat;
- boolean kickTriggered;
- boolean snareHeadTriggered;
- boolean hiHatTriggered;
- boolean shouldTriggerKick;
  
  void setup()
  {
    pinMode(LEDPIN, OUTPUT);
    Serial.begin(31250); // MIDI Baud Rate
    snare = new Drum(0);
-   downTime = 0;
-   sensorValue = 0;
-   kickTriggered = false;
-   snareHeadTriggered = false;
-   hiHatTriggered = false;
-   shouldTriggerKick = false;
    
   // set up the ADC
   ADCSRA &= ~PS_128;  // remove bits set by Arduino library
@@ -100,6 +65,12 @@
        snare->updateStrokeValues();
 
        digitalWrite(LEDPIN, HIGH);
+       /*
+       Byte 1 = type of signal
+       Byte 2 = MIDI Note
+       Byte 3 = Velocity
+       Byte 4 = Time since last reading
+       */
        if (graphMode) {
          byte data[] = {GRAPH_STROKE, snare->getArticulation(),
                         snare->getCurrentMax(), 1};//snare->getDatumDuration()};
@@ -114,72 +85,18 @@
    }
  }
  
- int report(int pin, int value)
- {
-   boolean output = false;
-   switch (pin)
-   {
-     case KICK:
-       if (value > kickMax)
-       {
-         kickMax = value;
-         //shouldTriggerKick = true;
-       }
-       else if (value < lastKick && !kickTriggered)
-       {
-         output = kickMax;
-         kickTriggered = true;
-       }
-       else if (value < THRESHOLD)
-       {
-         kickMax = 0;
-         kickTriggered = false;
-       }
-       lastKick = value;
-       break;
-     case SNARE_HEAD:
-       if (value > snareHeadMax)
-       {
-         snareHeadMax = value;
-       }
-       else if (value < lastSnareHead && !snareHeadTriggered)
-       {
-         output = snareHeadMax;
-         snareHeadTriggered = true;
-       }
-       else if (value < THRESHOLD)
-       {
-         snareHeadMax = 0;
-         snareHeadTriggered = false;
-       }
-       lastSnareHead = value;
-       break;
-     case HIHAT:
-       if (value > hiHatMax)
-       {
-         hiHatMax = value;
-       }
-       else if (value < lastHiHat && !hiHatTriggered)
-       {
-         output = hiHatMax;
-         hiHatTriggered = true;
-       }
-       else if (value < THRESHOLD)
-       {
-         hiHatMax = 0;
-         hiHatTriggered = false;
-       }
-       lastHiHat = value;
-       break;
-   }
-   return output;
- }
+ 
  void serialEventRun(void) {
   if (Serial.available()) serialEvent();
  }
+ 
  void serialEvent() {
    byte currentByte;
    byte variable = 0, value = 0;
+   /*
+   Byte 1 = variable to modify
+   Byte 2 = value to set variable
+   */
    while (Serial.available() > 0) {
      currentByte = Serial.read();
      if (currentByte == 0 && variable != SET_TIMEOUT) {
