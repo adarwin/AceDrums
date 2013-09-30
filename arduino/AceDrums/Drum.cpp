@@ -1,14 +1,18 @@
 #include "Drum.h"
 #include "Arduino.h"
+#include "MIDIDrumData.h"
 
 
 
-Drum::Drum(int pin) : pin(pin), currentValue(7), lastValue(0),
+Drum::Drum(int pin, byte numArticulations) : pin(pin),
+                      currentValue(7), lastValue(0),
                       twoValuesAgo(0), threshold(5),
                       thresholdPercentage(.30), 
                       slope(0), strokeTime(0), previousStrokeTime(0),
                       strokeValue(0), previousStrokeValue(0),
-                      sensitivity(200) { }
+                      sensitivity(200),
+                      midiDrumData(new MIDIDrumData(numArticulations)) {
+}
                       
 Drum::~Drum() { }
 
@@ -18,8 +22,12 @@ int Drum::calculateSlope() {
   return slope;
 }
 
-int Drum::getArticulation() {
-  return CENTER;
+byte Drum::getArticulation() {
+  return midiDrumData->getFirstMIDINote();
+}
+
+bool Drum::addArticulation(byte articulation, byte value) {
+  return midiDrumData->addArticulation(articulation, value);
 }
 
 int Drum::getCurrentMax() {
@@ -41,6 +49,9 @@ void Drum::reportNewValue(int value) {
   currentValue = value;
   if (currentValue != 0) {
     lastNonZeroTime = currentTime;
+  }
+  if (getTimeSinceNonZero() > 80000) { // 80000 = 80 ms
+    updateStrokeValues();
   }
 }
 

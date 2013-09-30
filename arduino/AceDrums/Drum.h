@@ -25,10 +25,12 @@
  #define OPEN_BELL_2 121
  #define OPEN_PEDAL 23
  #define CLOSED_PEDAL 21
+ #import "Arduino.h"
  
+class MIDIDrumData;
 class Drum {
   public:
-    Drum(int);
+    Drum(int, byte);
     ~Drum();
     int currentValue;
     int calculateSlope();
@@ -44,7 +46,8 @@ class Drum {
     unsigned long getDatumDuration();
     void setSensitivity(int);
     void setThreshold(double);
-    int getArticulation();
+    byte getArticulation();
+    bool addArticulation(byte, byte);
     bool hasNonZeroValue();
     
   protected:
@@ -53,6 +56,7 @@ class Drum {
     int sensitivity;
     
   private:
+    MIDIDrumData* midiDrumData;
     unsigned long endingTime;
     unsigned long lastNonZeroTime;
     int lastValue;

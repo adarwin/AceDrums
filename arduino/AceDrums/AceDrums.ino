@@ -5,6 +5,7 @@
  */
  
  #include "Drum.h"
+ #include "MIDIDrumData.h"
  // Declare macros
  #define LEDPIN 13
  #define PADNUM 1
@@ -28,6 +29,11 @@
 
  // Declare global variables
  Drum* snare;
+ Drum* kick;
+ Drum* rackTom1;
+ Drum* drums[2];
+ Drum* drumCurrentlyInGraphMode;
+ int lastDrumIndex = 2;
  
  boolean graphMode = false;
  
@@ -39,7 +45,29 @@
  {
    pinMode(LEDPIN, OUTPUT);
    Serial.begin(31250); // MIDI Baud Rate
-   snare = new Drum(0);
+   drumCurrentlyInGraphMode = NULL;
+   snare = new Drum(0, 10);
+   snare->addArticulation(MIDIDrumData::center, 38);
+   snare->addArticulation(MIDIDrumData::edge, 33);
+   snare->addArticulation(MIDIDrumData::rimshot, 40);
+   snare->addArticulation(MIDIDrumData::sidestick, 37);
+   snare->addArticulation(MIDIDrumData::rim_only, 71);
+   snare->addArticulation(MIDIDrumData::muted, 68);
+   snare->addArticulation(MIDIDrumData::flams, 69);
+   snare->addArticulation(MIDIDrumData::roll, 70);
+   snare->addArticulation(MIDIDrumData::ruffs, 39);
+   snare->addArticulation(MIDIDrumData::swirls, 67);
+   
+   kick = new Drum(1, 1);
+   kick->addArticulation(MIDIDrumData::right, 36);
+   
+   rackTom1 = new Drum(2, 3);
+   rackTom1->addArticulation(MIDIDrumData::center, 48);
+   rackTom1->addArticulation(MIDIDrumData::rimshot, 82);
+   rackTom1->addArticulation(MIDIDrumData::rim_only, 81);
+   
+   drums[0] = snare;
+   drums[1] = kick;
    
   // set up the ADC
   ADCSRA &= ~PS_128;  // remove bits set by Arduino library
@@ -51,20 +79,22 @@
  
  void loop()
  {
-   for(int i = 0; i < PADNUM; i++) {
-     snare->readNewValue();
-     snare->calculateSlope();
-     int currentMax = snare->getCurrentMax();
+   Drum* drum;
+   for(int i = 0; i < lastDrumIndex; i++) {
+     drum = drums[i];
+     drum->readNewValue();
+     drum->calculateSlope();
+     int currentMax = drum->getCurrentMax();
      if (graphMode &&
-         snare->getTimeSinceNonZero() >= 0 &&
-         (snare->hasNonZeroValue() || snare->getTimeSinceNonZero() < timeout)) {
-       byte data[] = {GRAPH_DATA, snare->currentValue, snare->getDatumDuration()};
+         drum->getTimeSinceNonZero() >= 0 &&
+         (drum->hasNonZeroValue() || drum->getTimeSinceNonZero() < timeout)) {
+       byte data[] = {GRAPH_DATA, drum->currentValue, drum->getDatumDuration()};
        Serial.write(data, 3);
      }
-     if (snare->encounteredLegitStroke()) {
-       snare->updateStrokeValues();
+     if (drum->encounteredLegitStroke()) {
+       drum->updateStrokeValues();
 
-       digitalWrite(LEDPIN, HIGH);
+       //digitalWrite(LEDPIN, HIGH);
        /*
        Byte 1 = type of signal
        Byte 2 = MIDI Note
@@ -72,15 +102,15 @@
        Byte 4 = Time since last reading
        */
        if (graphMode) {
-         byte data[] = {GRAPH_STROKE, snare->getArticulation(),
-                        snare->getCurrentMax(), 1};//snare->getDatumDuration()};
+         byte data[] = {GRAPH_STROKE, drum->getArticulation(),
+                        drum->getCurrentMax(), 1};//snare->getDatumDuration()};
          Serial.write(data, 4);
        } else {
-         byte data[] = {NORMAL_STROKE, snare->getArticulation(),
-                        snare->getCurrentMax(), snare->getDatumDuration()};
+         byte data[] = {NORMAL_STROKE, drum->getArticulation(),
+                        drum->getCurrentMax(), drum->getDatumDuration()};
          Serial.write(data, 4);
         }
-       digitalWrite(LEDPIN,LOW);
+       //digitalWrite(LEDPIN,LOW);
      }
    }
  }
@@ -92,10 +122,11 @@
  
  void serialEvent() {
    byte currentByte;
-   byte variable = 0, value = 0;
+   byte variable = 0, value = 0, drum = 0;
    /*
    Byte 1 = variable to modify
-   Byte 2 = value to set variable
+   Byte 2 = drum variable applies to
+   Byte 3 = value to set variable
    */
    while (Serial.available() > 0) {
      currentByte = Serial.read();
