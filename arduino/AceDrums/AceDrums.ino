@@ -140,10 +140,15 @@
        drum = drums[currentByte];
      } else if (value == 0) {
        value = currentByte;
+       setVariable(drum, variable, value);
+       drum = NULL, variable = 0, value = 0;
      } else {
        break;
      }
    }
+ }
+ 
+ void setVariable(Drum* drum, byte variable, byte value) {
    if (variable == SET_GRAPH_MODE) {
      drumCurrentlyInGraphMode->setGraphMode(false);
      drum->setGraphMode(value == 1);

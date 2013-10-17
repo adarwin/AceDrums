@@ -82,7 +82,11 @@ class SerialConnection {
         return setValueOnArduino(SET_SENSITIVITY, drum, value/10);
     }
     protected boolean requestGraphMode(int drum, boolean value) {
-        logger.log(Level.INFO, "Requesting graph mode for drum: " + drum);
+        if (value) {
+            logger.log(Level.INFO, "Requesting graph mode for drum: " + drum);
+        } else {
+            logger.log(Level.INFO, "Requesting to exit graph mode for drum: " + drum);
+        }
         byte graphModeValue;
         if (value) {
             graphModeValue = 0x01;
@@ -102,6 +106,8 @@ class SerialConnection {
         boolean successful = false;
         if (outputStream != null) {
             if (value > 255) {
+                logger.log(Level.WARNING, "Value is larger than 255 and " +
+                                          "be split into two bytes");
                 // Split into two bytes
             }
             byte[] output = new byte[3];
