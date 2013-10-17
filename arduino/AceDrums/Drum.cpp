@@ -36,6 +36,14 @@ int Drum::getCurrentMax() {
   return currentMax;
 }
 
+void Drum::setGraphMode(bool value) {
+  graphMode = value;
+}
+
+bool Drum::getGraphMode() {
+  return graphMode;
+}
+
 void Drum::readNewValue() {
   reportNewValue(constrain(map(analogRead(pin), 0, sensitivity, 0, 127),
                            0, 127));

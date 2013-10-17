@@ -72,37 +72,42 @@ class SerialConnection {
         }
         return portList;
     }
-    protected boolean setTimeout(int value) {
-        return setValueOnArduino(SET_TIMEOUT, value);
+    protected boolean setTimeout(int drum, int value) {
+        return setValueOnArduino(SET_TIMEOUT, drum, value);
     }
-    protected boolean setThreshold(int value) {
-        return setValueOnArduino(SET_THRESHOLD, value);
+    protected boolean setThreshold(int drum, int value) {
+        return setValueOnArduino(SET_THRESHOLD, drum, value);
     }
-    protected boolean setSensitivity(int value) {
-        return setValueOnArduino(SET_SENSITIVITY, value/10);
+    protected boolean setSensitivity(int drum, int value) {
+        return setValueOnArduino(SET_SENSITIVITY, drum, value/10);
     }
-    protected boolean requestGraphMode(boolean value) {
+    protected boolean requestGraphMode(int drum, boolean value) {
+        logger.log(Level.INFO, "Requesting graph mode for drum: " + drum);
         byte graphModeValue;
         if (value) {
             graphModeValue = 0x01;
         } else {
             graphModeValue = 0x00;
         }
-        boolean successful = setValueOnArduino(SET_GRAPH_MODE, graphModeValue);
+        boolean successful = setValueOnArduino(SET_GRAPH_MODE, drum,
+                                               graphModeValue);
         if (successful) {
             inGraphMode = value;
+        } else {
+            logger.log(Level.WARNING, "Failed to set graph mode on arduino");
         }
         return successful;
     }
-    private boolean setValueOnArduino(int variable, int value) {
+    private boolean setValueOnArduino(int variable, int drum, int value) {
         boolean successful = false;
         if (outputStream != null) {
             if (value > 255) {
                 // Split into two bytes
             }
-            byte[] output = new byte[2];
+            byte[] output = new byte[3];
             output[0] = (byte)variable;
-            output[1] = (byte)value;
+            output[1] = (byte)drum;
+            output[2] = (byte)value;
             successful = sendByteArrayToArduino(output);
         }
         return successful;

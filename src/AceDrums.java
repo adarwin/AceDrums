@@ -46,6 +46,8 @@ import java.util.Enumeration;
 
 public class AceDrums {
 
+    protected static SerialConnection serialConnection;
+
     private static final Logger logger = Logger.getLogger(
                                                     AceDrums.class.getName());
     private static int startingWidth = 800;
@@ -60,7 +62,6 @@ public class AceDrums {
     private static ArrayList<DrumWidget> drumWidgets;
     private static MidiOutput midiOutput;
     private static MIDIKit midiKit;
-    private static SerialConnection serialConnection;
     private static GraphDialog graphDialog;
     private static GraphPanel graphPanel;
     private static boolean DEBUG = true;
@@ -118,6 +119,7 @@ public class AceDrums {
         showGUI();
     }
 
+    /*
     protected static void setThreshold(int value) {
         if (!serialConnection.setThreshold(value)) {
             logger.log(Level.WARNING, "Failed to set threshold to " + value);
@@ -133,6 +135,7 @@ public class AceDrums {
             logger.log(Level.WARNING, "Failed to set timeout to " + value);
         }
     }
+    */
 
     private static void initializeGlobalVariables() {
         MidiSystem.initMidiSystem("AceDrums", "SuperiorDrummer");
@@ -245,9 +248,11 @@ public class AceDrums {
         menuBar.add(viewMenu);
         menuBar.add(connectionsMenu);
     }
+    /*
     protected static void requestGraphMode(boolean value) {
         serialConnection.requestGraphMode(value);
     }
+    */
     private static void addMenuItem(JMenu menu, JMenuItem menuItem, ActionListener listener) {
         menuItem.addActionListener(listener);
         menu.add(menuItem);

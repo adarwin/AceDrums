@@ -49,6 +49,8 @@ class Drum {
     byte getArticulation();
     bool addArticulation(byte, byte);
     bool hasNonZeroValue();
+    void setGraphMode(bool);
+    bool getGraphMode();
     
   protected:
     int threshold;

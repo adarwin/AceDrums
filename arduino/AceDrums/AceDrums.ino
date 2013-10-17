@@ -85,7 +85,7 @@
      drum->readNewValue();
      drum->calculateSlope();
      int currentMax = drum->getCurrentMax();
-     if (graphMode &&
+     if (drum->getGraphMode() &&
          drum->getTimeSinceNonZero() >= 0 &&
          (drum->hasNonZeroValue() || drum->getTimeSinceNonZero() < timeout)) {
        byte data[] = {GRAPH_DATA, drum->currentValue, drum->getDatumDuration()};
@@ -101,7 +101,7 @@
        Byte 3 = Velocity
        Byte 4 = Time since last reading
        */
-       if (graphMode) {
+       if (drum->getGraphMode()) {
          byte data[] = {GRAPH_STROKE, drum->getArticulation(),
                         drum->getCurrentMax(), 1};//snare->getDatumDuration()};
          Serial.write(data, 4);
@@ -122,7 +122,8 @@
  
  void serialEvent() {
    byte currentByte;
-   byte variable = 0, value = 0, drum = 0;
+   byte variable = 0, value = 0;
+   Drum* drum = NULL;
    /*
    Byte 1 = variable to modify
    Byte 2 = drum variable applies to
@@ -130,11 +131,13 @@
    */
    while (Serial.available() > 0) {
      currentByte = Serial.read();
-     if (currentByte == 0 && variable != SET_TIMEOUT) {
-       continue;
+     if (currentByte == 0 && variable != SET_TIMEOUT && variable != SET_GRAPH_MODE) {
+       //continue;
      }
      if (variable == 0) {
        variable = currentByte;
+     } else if (drum == NULL) {
+       drum = drums[currentByte];
      } else if (value == 0) {
        value = currentByte;
      } else {
@@ -142,11 +145,13 @@
      }
    }
    if (variable == SET_GRAPH_MODE) {
-     graphMode = value == 1;
+     drumCurrentlyInGraphMode->setGraphMode(false);
+     drum->setGraphMode(value == 1);
+     //graphMode = value == 1;
    } else if (variable == SET_THRESHOLD) {
-     snare->setThreshold((double)value/100);
+     drum->setThreshold((double)value/100);
    } else if (variable == SET_SENSITIVITY) {
-     snare->setSensitivity(value*10);
+     drum->setSensitivity(value*10);
    } else if (variable == SET_TIMEOUT) {
      timeout = value * 1000;
    }

@@ -30,6 +30,7 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import java.util.ArrayList;
 
 class GraphDialog extends JDialog {
@@ -40,6 +41,9 @@ class GraphDialog extends JDialog {
     private JPanel eastPane, westPane;
     private JSlider thresholdSlider, sensitivitySlider, timeoutSlider;
     private JButton testButton, resetButton;
+    private JComboBox<String> drumChooser;
+    private ArrayList<Integer> drums;
+    private int currentDrum;
 
     private static int SENSITIVITY_MAX = 800;
     private static int SENSITIVITY_DEFAULT = 200;
@@ -50,6 +54,7 @@ class GraphDialog extends JDialog {
     private static int TIMEOUT_MIN = 0;
     private static int TIMEOUT_DEFAULT = 5;
     private static int TIMEOUT_MAX = 100;
+    private static int SNARE = 0, KICK = 1;
 
     private final int TOP_MARGIN = 30;
     private final int BOTTOM_MARGIN = 10;
@@ -60,9 +65,13 @@ class GraphDialog extends JDialog {
     private final int WIDTH_1 = 1;
     private final int WIDTH_2 = 2;
     private final int HEIGHT_1 = 1;
+    private final int HEIGHT_2 = 2;
     private final int ANCHOR_CENTER = GridBagConstraints.CENTER;
     private final int ANCHOR_EAST = GridBagConstraints.EAST;
     private final int ANCHOR_WEST = GridBagConstraints.WEST;
+    private final int ANCHOR_NORTH = GridBagConstraints.NORTH;
+    private final int ANCHOR_NORTHEAST = GridBagConstraints.NORTHEAST;
+    private final int ANCHOR_SOUTHEAST = GridBagConstraints.SOUTHEAST;
     private final int FILL_NONE = GridBagConstraints.NONE;
     private final int FILL_HORIZONTAL = GridBagConstraints.HORIZONTAL;
     private final int FILL_VERTICAL = GridBagConstraints.VERTICAL;
@@ -85,6 +94,10 @@ class GraphDialog extends JDialog {
     }
 
     private void initializeVariables() {
+        drums = new ArrayList<Integer>();
+        currentDrum = SNARE;
+        drums.add(currentDrum);
+        drums.add(KICK);
     }
 
     private void buildContainers() {
@@ -103,6 +116,7 @@ class GraphDialog extends JDialog {
         contentPane.setLayout(new BorderLayout());
         optionsPane.setLayout(new GridBagLayout());
         eastPane.setLayout(new FlowLayout());
+        westPane.setLayout(new FlowLayout());
 
     }
 
@@ -116,6 +130,10 @@ class GraphDialog extends JDialog {
                 timeoutSlider.setValue(TIMEOUT_DEFAULT);
             }
         });
+        drumChooser = new JComboBox<String>();
+        //drumChooser.addActionListener(new ActionListener()
+        drumChooser.addItem("Snare");
+        drumChooser.addItem("Kick");
         thresholdSlider = new JSlider(SwingConstants.HORIZONTAL,
                                       THRESHOLD_MIN, THRESHOLD_MAX,
                                       THRESHOLD_DEFAULT);
@@ -127,7 +145,8 @@ class GraphDialog extends JDialog {
         thresholdSlider.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 if (!thresholdSlider.getValueIsAdjusting()) {
-                    AceDrums.setThreshold(thresholdSlider.getValue());
+                    AceDrums.serialConnection.setThreshold(currentDrum,
+                                                   thresholdSlider.getValue());
                 }
             }
         });
@@ -143,7 +162,8 @@ class GraphDialog extends JDialog {
         sensitivitySlider.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 if (!sensitivitySlider.getValueIsAdjusting()) {
-                    AceDrums.setSensitivity(sensitivitySlider.getValue());
+                    AceDrums.serialConnection.setSensitivity(currentDrum,
+                                                 sensitivitySlider.getValue());
                 }
             }
         });
@@ -159,7 +179,9 @@ class GraphDialog extends JDialog {
         timeoutSlider.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 if (!timeoutSlider.getValueIsAdjusting()) {
-                    AceDrums.setTimeout(timeoutSlider.getValue());
+                    AceDrums.serialConnection.setTimeout(currentDrum,
+                                                     timeoutSlider.getValue());
+                    //AceDrums.setTimeout(timeoutSlider.getValue());
                 }
             }
         });
@@ -170,26 +192,43 @@ class GraphDialog extends JDialog {
         contentPane.add(optionsPane, BorderLayout.SOUTH);
         contentPane.add(eastPane, BorderLayout.EAST);
         contentPane.add(westPane, BorderLayout.WEST);
+        //westPane.add(drumChooser);
 
+        int row = 0;
+        optionsPane.add(new JLabel("Drum", SwingConstants.RIGHT),
+                        new GridBagConstraints(COL_0, row,
+                                     WIDTH_1, HEIGHT_1,
+                                     WEIGHTX_0, WEIGHTY_0,
+                                     ANCHOR_EAST,
+                                     FILL_NONE,
+                                     new Insets(10, 0, 10, 0),
+                                     0, 0));
+        optionsPane.add(drumChooser, new GridBagConstraints(COL_1, row++,
+                                     WIDTH_1, HEIGHT_1,
+                                     WEIGHTX_0, WEIGHTY_0,
+                                     ANCHOR_WEST,
+                                     FILL_NONE,
+                                     new Insets(10, 10, 10, 0),
+                                     0, 0));
         // Add row 1
-        int row = addSliderToOptionsPane("Threshold (% of each " +
-                                         "stroke velocity)", thresholdSlider,
-                                         0, THRESHOLD_MIN + "%",
-                                         THRESHOLD_MAX + "%");
+        row = addSliderToOptionsPane("Threshold", "% of each stroke velocity",
+                                     thresholdSlider, row, THRESHOLD_MIN + "%",
+                                     THRESHOLD_MAX + "%");
 
         // Add row 2
-        row = addSliderToOptionsPane("Sensitivity (peak input voltage value)", sensitivitySlider, ++row,
+        row = addSliderToOptionsPane("Sensitivity", "peak input voltage value",
+                                     sensitivitySlider, row,
                                      Integer.toString(SENSITIVITY_MIN),
                                      Integer.toString(SENSITIVITY_MAX));
 
         // Add row 3
-        row = addSliderToOptionsPane("Timeout (ms)", timeoutSlider, row,
+        row = addSliderToOptionsPane("Timeout", "ms", timeoutSlider, row,
                                      Integer.toString(TIMEOUT_MIN),
                                      Integer.toString(TIMEOUT_MAX));
 
         // Add row 4
-        optionsPane.add(resetButton, new GridBagConstraints(COL_2, row++,
-                                     WIDTH_2, HEIGHT_1,
+        optionsPane.add(resetButton, new GridBagConstraints(COL_1, row++,
+                                     WIDTH_1, HEIGHT_1,
                                      WEIGHTX_0, WEIGHTY_0,
                                      ANCHOR_EAST,
                                      FILL_NONE,
@@ -200,18 +239,43 @@ class GraphDialog extends JDialog {
         setContentPane(contentPane);
     }
 
-    private int addSliderToOptionsPane(String name, JSlider slider, int row,
-                                        String minValue, String maxValue) {
+    private int addSliderToOptionsPane(String name, String units,
+                                       JSlider slider, int row,
+                                       String minValue, String maxValue) {
 
         GridBagConstraints gbc;
+        /*
         gbc = new GridBagConstraints(COL_1, row++, WIDTH_2, HEIGHT_1,
                                      WEIGHTX_1, WEIGHTY_0,
                                      ANCHOR_CENTER,
                                      FILL_NONE,
                                      new Insets(TOP_MARGIN, 0, 0, 0),
                                      0, 0);
-        optionsPane.add(new JLabel(name, SwingConstants.CENTER), gbc);
+        */
+        gbc = new GridBagConstraints(COL_0, row, WIDTH_1, HEIGHT_1,
+                                     WEIGHTX_0, WEIGHTY_0,
+                                     ANCHOR_SOUTHEAST,
+                                     FILL_NONE,
+                                     new Insets(0, 10, 0, 0),
+                                     0, 0);
+        optionsPane.add(new JLabel(name, SwingConstants.RIGHT), gbc);
 
+        gbc = new GridBagConstraints(COL_1, row, WIDTH_1, HEIGHT_2,
+                                     WEIGHTX_1, WEIGHTY_0,
+                                     ANCHOR_CENTER,
+                                     FILL_HORIZONTAL,
+                                     new Insets(0, 10, 10, 10),
+                                     0, 0);
+        optionsPane.add(slider, gbc);
+
+        gbc = new GridBagConstraints(COL_0, ++row, WIDTH_1, HEIGHT_1,
+                                     WEIGHTX_0, WEIGHTY_0,
+                                     ANCHOR_NORTHEAST,
+                                     FILL_NONE,
+                                     new Insets(0, 10, 0, 0),
+                                     0, 0);
+        optionsPane.add(new JLabel("(" + units + ")", SwingConstants.RIGHT), gbc);
+        /*
         gbc = new GridBagConstraints(COL_0, row, WIDTH_1, HEIGHT_1,
                                      WEIGHTX_0, WEIGHTY_0,
                                      ANCHOR_EAST,
@@ -220,15 +284,10 @@ class GraphDialog extends JDialog {
                                      10, 0);
         optionsPane.add(new JLabel(minValue, SwingConstants.RIGHT),
                         gbc);
+        */
 
-        gbc = new GridBagConstraints(COL_1, row, WIDTH_2, HEIGHT_1,
-                                     WEIGHTX_1, WEIGHTY_0,
-                                     ANCHOR_CENTER,
-                                     FILL_HORIZONTAL,
-                                     new Insets(0, 0, 0, 0),
-                                     0, 0);
-        optionsPane.add(slider, gbc);
 
+        /*
         gbc = new GridBagConstraints(COL_3, row, WIDTH_1, HEIGHT_1,
                                      WEIGHTX_0, WEIGHTY_0,
                                      ANCHOR_WEST,
@@ -237,6 +296,7 @@ class GraphDialog extends JDialog {
                                      10, 0);
         optionsPane.add(new JLabel(maxValue, SwingConstants.LEFT),
                         gbc);
+        */
         return ++row;
     }
 
@@ -260,12 +320,16 @@ class GraphDialog extends JDialog {
     private void addWindowListeners() {
         addWindowListener(new WindowListener() {
             public void windowActivated(WindowEvent e) {
-                AceDrums.requestGraphMode(true);
+                for (Integer drum : drums) {
+                    AceDrums.serialConnection.requestGraphMode(drum, true);
+                }
             }
             public void windowClosed(WindowEvent e) { }
             public void windowClosing(WindowEvent e) { }
             public void windowDeactivated(WindowEvent e) {
-                AceDrums.requestGraphMode(false);
+                for (Integer drum : drums) {
+                    AceDrums.serialConnection.requestGraphMode(drum, false);
+                }
             }
             public void windowDeiconified(WindowEvent e) { }
             public void windowIconified(WindowEvent e) { }
