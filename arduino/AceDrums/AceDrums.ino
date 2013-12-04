@@ -1,15 +1,13 @@
 /*
   Andrew Darwin
   Senior Capstone
-  Semester 1 (CSC 495)
+  Semester 2 (CSC 496)
  */
  
  #include "Drum.h"
  #include "MIDIDrumData.h"
+
  // Declare macros
- #define LEDPIN 13
- #define PADNUM 1
- 
  #define NORMAL_STROKE 128
  #define GRAPH_STROKE 129
  #define GRAPH_DATA 130
@@ -18,10 +16,10 @@
  #define SET_THRESHOLD 132
  #define SET_SENSITIVITY 133
  #define SET_TIMEOUT 134
- 
 
-
- // Define various ADC prescaler --> www.marulaberry.co.za/index.php/tutorials/code/arduino-adc/
+ /* Define various ADC prescaler
+    --> www.marulaberry.co.za/index.php/tutorials/code/arduino-adc/
+ */
  const unsigned char PS_16 = (1 << ADPS2);
  const unsigned char PS_32 = (1 << ADPS2) | (1 << ADPS0);
  const unsigned char PS_64 = (1 << ADPS2) | (1 << ADPS1);
@@ -30,12 +28,13 @@
  // Declare global variables
  Drum* snare;
  Drum* kick;
+ Drum* hats;
  Drum* rackTom1;
- Drum* drums[2];
+ Drum* rackTom2;
+ Drum* drums[4];
  Drum* drumCurrentlyInGraphMode;
- int lastDrumIndex = 2;
+ int lastDrumIndex = 4;
  
- boolean graphMode = false;
  
  unsigned int timeout = 1000;
  
@@ -43,10 +42,9 @@
  
  void setup()
  {
-   pinMode(LEDPIN, OUTPUT);
    Serial.begin(31250); // MIDI Baud Rate
    drumCurrentlyInGraphMode = NULL;
-   snare = new Drum(0, 10);
+   snare = new Drum(0, 0, 10, 3);
    snare->addArticulation(MIDIDrumData::center, 38);
    snare->addArticulation(MIDIDrumData::edge, 33);
    snare->addArticulation(MIDIDrumData::rimshot, 40);
@@ -58,16 +56,43 @@
    snare->addArticulation(MIDIDrumData::ruffs, 39);
    snare->addArticulation(MIDIDrumData::swirls, 67);
    
-   kick = new Drum(1, 1);
+   kick = new Drum(1, 1, 1, 3);
    kick->addArticulation(MIDIDrumData::right, 36);
    
-   rackTom1 = new Drum(2, 3);
+   hats = new Drum(3, 4, 1, 3);
+   hats->addArticulation(MIDIDrumData::closed_edge, 22);
+   hats->addArticulation(MIDIDrumData::closed_tip, 42);
+   hats->addArticulation(MIDIDrumData::tight_edge, 62);
+   hats->addArticulation(MIDIDrumData::tight_tip, 63);
+   hats->addArticulation(MIDIDrumData::open_1, 24);
+   hats->addArticulation(MIDIDrumData::open_2, 25);
+   hats->addArticulation(MIDIDrumData::open_3, 26);
+   hats->addArticulation(MIDIDrumData::open_4, 60);
+   hats->addArticulation(MIDIDrumData::open_5, 17);
+   hats->addArticulation(MIDIDrumData::closed_bell, 119);
+   hats->addArticulation(MIDIDrumData::open_bell_1, 120);
+   hats->addArticulation(MIDIDrumData::open_bell_2, 121);
+   hats->addArticulation(MIDIDrumData::open_pedal, 23);
+   hats->addArticulation(MIDIDrumData::closed_pedal, 21);
+   
+
+   rackTom1 = new Drum(2, 2, 3, 3);
    rackTom1->addArticulation(MIDIDrumData::center, 48);
    rackTom1->addArticulation(MIDIDrumData::rimshot, 82);
    rackTom1->addArticulation(MIDIDrumData::rim_only, 81);
+
+   /*
+   rackTom2 = new Drum(3, 3, 3, 3);
+   rackTom2->addArticulation(MIDIDrumData::center, 99); // Need to figure
+   rackTom2->addArticulation(MIDIDrumData::rimshot, 99); // out what these
+   rackTom2->addArticulation(MIDIDrumData::rim_only, 99); // values should be
+   */
    
    drums[0] = snare;
    drums[1] = kick;
+   drums[2] = rackTom1;
+   drums[3] = hats;
+   //drums[2] = hats;
    
   // set up the ADC
   ADCSRA &= ~PS_128;  // remove bits set by Arduino library
@@ -82,19 +107,22 @@
    Drum* drum;
    for(int i = 0; i < lastDrumIndex; i++) {
      drum = drums[i];
+     //Serial.println("Got here");
      drum->readNewValue();
      drum->calculateSlope();
      int currentMax = drum->getCurrentMax();
-     if (drum->getGraphMode() &&
+     if (//drum->getGraphMode() &&
          drum->getTimeSinceNonZero() >= 0 &&
          (drum->hasNonZeroValue() || drum->getTimeSinceNonZero() < timeout)) {
-       byte data[] = {GRAPH_DATA, drum->currentValue, drum->getDatumDuration()};
+       //Serial.println(drum->getCurrentValue());
+       byte data[] = {GRAPH_DATA, drum->getCurrentValue(), drum->getDatumDuration()};
        Serial.write(data, 3);
+
      }
+     
      if (drum->encounteredLegitStroke()) {
        drum->updateStrokeValues();
 
-       //digitalWrite(LEDPIN, HIGH);
        /*
        Byte 1 = type of signal
        Byte 2 = MIDI Note
@@ -104,13 +132,14 @@
        if (drum->getGraphMode()) {
          byte data[] = {GRAPH_STROKE, drum->getArticulation(),
                         drum->getCurrentMax(), 1};//snare->getDatumDuration()};
-         Serial.write(data, 4);
+         //Serial.write(data, 4);
        } else {
          byte data[] = {NORMAL_STROKE, drum->getArticulation(),
                         drum->getCurrentMax(), drum->getDatumDuration()};
-         Serial.write(data, 4);
+         //Serial.write(data, 4);
+         //Serial.print("Stroke: ");
+         //Serial.println(drum->getCurrentMax());
         }
-       //digitalWrite(LEDPIN,LOW);
      }
    }
  }
@@ -152,7 +181,6 @@
    if (variable == SET_GRAPH_MODE) {
      drumCurrentlyInGraphMode->setGraphMode(false);
      drum->setGraphMode(value == 1);
-     //graphMode = value == 1;
    } else if (variable == SET_THRESHOLD) {
      drum->setThreshold((double)value/100);
    } else if (variable == SET_SENSITIVITY) {
