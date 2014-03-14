@@ -7,42 +7,47 @@
 
 package com.adarwin.edrum;
 
-import java.util.List;
-import java.util.HashMap;
 import de.humatic.mmj.MidiSystem;
 import de.humatic.mmj.MidiOutput;
-//import javax.sound.midi.MidiSystem;
-import javax.sound.midi.MidiDevice;
-import javax.sound.midi.MidiDevice.Info;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.WindowListener;
-import java.awt.event.WindowEvent;
-import java.beans.PropertyVetoException;
-import java.util.ArrayList;
-import java.util.logging.Logger;
-import java.util.logging.Level;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.UIManager.LookAndFeelInfo;
-import javax.swing.JPanel;
-import javax.swing.JFrame;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JToolBar;
-import javax.swing.JMenuBar;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.SwingUtilities;
 
 import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
+
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+
+import java.beans.PropertyVetoException;
+
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiDevice.Info;
+
+import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.UnsupportedLookAndFeelException;
+
 
 public class AceDrums {
 
@@ -50,8 +55,8 @@ public class AceDrums {
 
     private static final Logger logger = Logger.getLogger(
                                                     AceDrums.class.getName());
-    private static int startingWidth = 800;
-    private static int startingHeight = 600;
+    private static final int startingWidth = 800;
+    private static final int startingHeight = 600;
     private static JFrame frame;
     private static JMenuBar menuBar;
     private static JMenu fileMenu;
@@ -67,6 +72,7 @@ public class AceDrums {
     private static boolean DEBUG = true;
 
     public static void main(String[] args) {
+        // Set the look and feel
         try {
             for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -90,26 +96,23 @@ public class AceDrums {
 
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
+                // Create and show the GUI on the Event Dispatch Thread (EDT)
                 createAndShowGUI();
             }
         });
     }
 
 
-    public static boolean getSetManagementMode() {
-        return setManagementMode;
-    }
-
-    public static void requestDrumWidgetRemoval(DrumWidget targetedDrum) {
+    protected static void requestDrumWidgetRemoval(DrumWidget targetedDrum) {
         drumPanel.removeDrumWidget(targetedDrum);
     }
 
 
-    public static void requestTweakDialog(DrumWidget associatedDrumWidget) {
+    protected static void requestTweakDialog(DrumWidget associatedDrumWidget) {
         new TweakDialog(frame, associatedDrumWidget.drumName);
     }
 
-    public static void createAndShowGUI() {
+    private static void createAndShowGUI() {
         logger.log(Level.INFO, "Beginning to create and show GUI");
         initializeGlobalVariables();
         buildContainers();
@@ -153,9 +156,9 @@ public class AceDrums {
     }
 
     protected static void reportStroke(byte midiID, byte velocity) {
-        // Note on
+        // Send note on message
         midiOutput.sendMidi(new byte[] { (byte)144, midiID, velocity });
-        // Note off
+        // Send note off message
         midiOutput.sendMidi(new byte[] { (byte)128, midiID, velocity });
     }
 
@@ -169,7 +172,6 @@ public class AceDrums {
     private static void buildComponents() {
         buildMenuBar();
         buildToolBar();
-        buildDrumWidgets();
     }
 
     private static void buildMenuBar() {
@@ -257,10 +259,12 @@ public class AceDrums {
         menuItem.addActionListener(listener);
         menu.add(menuItem);
     }
+
     private static void addMenuItem(JMenu menu, String menuItemText, ActionListener listener) {
         JMenuItem menuItem = new JMenuItem(menuItemText);
         addMenuItem(menu, menuItem, listener);
     }
+
     private static void toggleSetManagementMode() {
         setManagementMode = !setManagementMode;
         //setManagementMode ^= true; is another way to toggle a boolean
@@ -274,19 +278,20 @@ public class AceDrums {
         }
         frame.setCursor(new Cursor(cursorType));
     }
-    static void bringForward(DrumWidget target) {
+
+    protected static void bringForward(DrumWidget target) {
         drumPanel.bringForward(target);
     }
-    static void bringToFront(DrumWidget target) {
+    protected static void bringToFront(DrumWidget target) {
         drumPanel.bringToFront(target);
     }
-    static void sendBackward(DrumWidget target) {
+    protected static void sendBackward(DrumWidget target) {
         drumPanel.sendBackward(target);
     }
-    static void sendToBack(DrumWidget target) {
+    protected static void sendToBack(DrumWidget target) {
         drumPanel.sendToBack(target);
     }
-    public static void benchmark(Benchmark benchmark) {
+    protected static void benchmark(Benchmark benchmark) {
         final int multiplier = 1;
         long start = System.nanoTime();
         for (int i = 0; i < multiplier; i++) {
@@ -306,112 +311,97 @@ public class AceDrums {
         toolbar.add(currentToolbarButton);
     }
 
-    private static void buildDrumWidgets() {
-        /*
-        drumWidgets = new ArrayList<DrumWidget>();
-        drumWidgets.add(new KickDrumWidget());
-        */
+
+    private static DrumWidget createDrumWidget(String name,
+                                               DrumArticulationMap dam,
+                                               String imageFilename,
+                                               int x, int y) {
+        return new DrumWidget(name, dam, "img/sd/" + imageFilename,
+                              x, y, drumPanel);
     }
 
+
     private static void addComponentsToContainers() {
-        // Assumes all components and containers have been built and
-        // configured
+        /* Assumes all components and containers have been built and
+           configured, aside from the drum widgets
+         */
         frame.setJMenuBar(menuBar);
         frame.setContentPane(drumPanel);
         drumPanel.addDrumWidget(
-           new DrumWidget("Crash 4",
-                          midiKit.cymbal4,
-                          "img/sd/crash_1.png", 57, -194, drumPanel)
+           createDrumWidget("Crash 4", midiKit.cymbal4,
+                            "crash_1.png", 57, -194)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Crash 5",
-                           midiKit.cymbal5,
-                           "img/sd/crash_2.png", 150, -149, drumPanel)
+            createDrumWidget("Crash 5", midiKit.cymbal5,
+                             "crash_2.png", 150, -149)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Crash 2",
-                           midiKit.cymbal2,
-                           "img/sd/crash_2.png", -184, -171, drumPanel)
+            createDrumWidget("Crash 2", midiKit.cymbal2,
+                             "crash_2.png", -184, -171)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Crash 3",
-                           midiKit.cymbal3,
-                           "img/sd/crash_2.png", -53, -198, drumPanel)
+            createDrumWidget("Crash 3", midiKit.cymbal3,
+                             "crash_2.png", -53, -198)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("China",
-                           midiKit.cymbal1,
-                           "img/sd/china.png", -236, -74, drumPanel)
+            createDrumWidget("China", midiKit.cymbal1,
+                             "china.png", -236, -74)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Ride 1",
-                           midiKit.ride1,
-                           "img/sd/ride_3.png", -209, 27, drumPanel)
+            createDrumWidget("Ride 1", midiKit.ride1,
+                             "ride_3.png", -209, 27)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Ride 4",
-                           midiKit.ride4,
-                           "img/sd/ride_2.png", 274, -94, drumPanel)
+            createDrumWidget("Ride 4", midiKit.ride4,
+                             "ride_2.png", 274, -94)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Ride 3",
-                          midiKit.ride3,
-                          "img/sd/ride_1.png", 194, -58, drumPanel)
+           createDrumWidget("Ride 3", midiKit.ride3,
+                            "ride_1.png", 194, -58)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Crash 6",
-                           midiKit.cymbal6,
-                           "img/sd/crash_1.png", 215, 54, drumPanel)
+            createDrumWidget("Crash 6", midiKit.cymbal6,
+                             "crash_1.png", 215, 54)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Ride 2",
-                           midiKit.ride2,
-                           "img/sd/ride_1.png", -158, -148, drumPanel)
+            createDrumWidget("Ride 2", midiKit.ride2,
+                             "ride_1.png", -158, -148)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Hi-Hat",
-                          midiKit.hi_hat,
-                          "img/sd/hat.png", -155, -48, drumPanel)
+           createDrumWidget("Hi-Hat", midiKit.hi_hat,
+                            "hat.png", -155, -48)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Floor 2",
-                           midiKit.floorTom2,
-                           "img/sd/tom_5.png", 136, 81, drumPanel)
+            createDrumWidget("Floor 2", midiKit.floorTom2,
+                             "tom_5.png", 136, 81)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Floor 1",
-                           midiKit.floorTom1,
-                           "img/sd/tom_4.png", 114, -13, drumPanel)
+            createDrumWidget("Floor 1", midiKit.floorTom1,
+                             "tom_4.png", 114, -13)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Rack 3",
-                           midiKit.rackTom3,
-                           "img/sd/tom_3.png", 60, -90, drumPanel)
+            createDrumWidget("Rack 3", midiKit.rackTom3,
+                             "tom_3.png", 60, -90)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Rack 2",
-                          midiKit.rackTom2,
-                          "img/sd/tom_2.png", -14, -111, drumPanel)
+           createDrumWidget("Rack 2", midiKit.rackTom2,
+                            "tom_2.png", -14, -111)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Snare",
-                          midiKit.snare,
-                          "img/sd/snare.png", -99, -21, drumPanel)
+           createDrumWidget("Snare", midiKit.snare,
+                            "snare.png", -99, -21)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Rack 1",
-                          midiKit.rackTom1,
-                          "img/sd/tom_1.png", -79, -96, drumPanel)
+           createDrumWidget("Rack 1", midiKit.rackTom1,
+                            "tom_1.png", -79, -96)
         );
         drumPanel.addDrumWidget(
-            new DrumWidget("Cowbell",
-                           midiKit.cowbell,
-                           "img/sd/cowbell.png", 31, -18, drumPanel)
+            createDrumWidget("Cowbell", midiKit.cowbell,
+                             "cowbell.png", 31, -18)
         );
         drumPanel.addDrumWidget(
-           new DrumWidget("Kick",
-                          midiKit.kick,
-                          "img/sd/kick.png", 0, 0, drumPanel)
+           createDrumWidget("Kick", midiKit.kick,
+                            "kick.png", 0, 0)
         );
     }
 

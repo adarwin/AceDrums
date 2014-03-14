@@ -7,33 +7,37 @@
 
 package com.adarwin.edrum;
 
-import java.awt.Dimension;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.Insets;
-import java.awt.Graphics;
-import javax.swing.JComponent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
-import java.awt.Point;
-import javax.swing.JSlider;
-import javax.swing.SwingConstants;
-import java.awt.Color;
-import java.awt.GridBagLayout;
-import javax.swing.JLabel;
-import java.awt.GridBagConstraints;
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.event.WindowListener;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
+import java.awt.event.WindowListener;
+import java.awt.FlowLayout;
+import java.awt.Graphics;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Point;
+import java.util.ArrayList;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import java.util.ArrayList;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.SwingConstants;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 class GraphDialog extends JDialog {
+    private static final Logger logger = Logger.getLogger(
+                                             GraphDialog.class.getName());
     private static final long serialVersionUID = 1L;
     private GraphPanel graphPanel;
     private JPanel contentPane;
@@ -41,9 +45,9 @@ class GraphDialog extends JDialog {
     private JPanel eastPane, westPane;
     private JSlider thresholdSlider, sensitivitySlider, timeoutSlider;
     private JButton testButton, resetButton;
-    private JComboBox<String> drumChooser;
-    private ArrayList<Integer> drums;
-    private int currentDrum;
+    private JComboBox<DrumSettings> drumChooser;
+    //private ArrayList<Integer> drums;
+    private int currentDrum, previousDrum;
 
     private static int SENSITIVITY_MAX = 800;
     private static int SENSITIVITY_DEFAULT = 200;
@@ -54,7 +58,7 @@ class GraphDialog extends JDialog {
     private static int TIMEOUT_MIN = 0;
     private static int TIMEOUT_DEFAULT = 5;
     private static int TIMEOUT_MAX = 100;
-    private static int SNARE = 0, KICK = 1;
+    private static int SNARE = 0, KICK = 1, RACK_TOM = 2, HATS = 3;
 
     private final int TOP_MARGIN = 30;
     private final int BOTTOM_MARGIN = 10;
@@ -94,10 +98,15 @@ class GraphDialog extends JDialog {
     }
 
     private void initializeVariables() {
-        drums = new ArrayList<Integer>();
+        //drums = new ArrayList<Integer>();
         currentDrum = SNARE;
+        previousDrum = SNARE;
+        /*
         drums.add(currentDrum);
         drums.add(KICK);
+        drums.add(RACK_TOM);
+        drums.add(HATS);
+        */
     }
 
     private void buildContainers() {
@@ -130,13 +139,10 @@ class GraphDialog extends JDialog {
                 timeoutSlider.setValue(TIMEOUT_DEFAULT);
             }
         });
-        drumChooser = new JComboBox<String>();
-        //drumChooser.addActionListener(new ActionListener()
-        drumChooser.addItem("Snare");
-        drumChooser.addItem("Kick");
         thresholdSlider = new JSlider(SwingConstants.HORIZONTAL,
-                                      THRESHOLD_MIN, THRESHOLD_MAX,
-                                      THRESHOLD_DEFAULT);
+                                      DrumSettings.THRESHOLD_MIN,
+                                      DrumSettings.THRESHOLD_MAX,
+                                      DrumSettings.THRESHOLD_DEFAULT);
         thresholdSlider.setPaintTicks(true);
         thresholdSlider.setPaintLabels(true);
         thresholdSlider.setSnapToTicks(true);
@@ -145,15 +151,22 @@ class GraphDialog extends JDialog {
         thresholdSlider.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 if (!thresholdSlider.getValueIsAdjusting()) {
+                    int value = thresholdSlider.getValue();
+                    DrumSettings ds = getSelectedDrumSettings();
+                    ds.setThreshold(value);
+                    logger.log(Level.INFO, "Sending " + value + " to the " +
+                                           "Arduino as the new threshold " +
+                                           "value for drum " + currentDrum);
                     AceDrums.serialConnection.setThreshold(currentDrum,
-                                                   thresholdSlider.getValue());
+                                                           value);
                 }
             }
         });
 
         sensitivitySlider = new JSlider(SwingConstants.HORIZONTAL,
-                                        SENSITIVITY_MIN, SENSITIVITY_MAX,
-                                        SENSITIVITY_DEFAULT);
+                                        DrumSettings.SENSITIVITY_MIN,
+                                        DrumSettings.SENSITIVITY_MAX,
+                                        DrumSettings.SENSITIVITY_DEFAULT);
         sensitivitySlider.setPaintTicks(true);
         sensitivitySlider.setPaintLabels(true);
         sensitivitySlider.setSnapToTicks(true);
@@ -162,15 +175,22 @@ class GraphDialog extends JDialog {
         sensitivitySlider.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 if (!sensitivitySlider.getValueIsAdjusting()) {
+                    int value = sensitivitySlider.getValue();
+                    DrumSettings ds = getSelectedDrumSettings();
+                    ds.setSensitivity(value);
+                    logger.log(Level.INFO, "Sending " + value + " to the " +
+                                           "Arduino as the new threshold " +
+                                           "value for drum " + currentDrum);
                     AceDrums.serialConnection.setSensitivity(currentDrum,
-                                                 sensitivitySlider.getValue());
+                                                             value);
                 }
             }
         });
 
         timeoutSlider = new JSlider(SwingConstants.HORIZONTAL,
-                                    TIMEOUT_MIN, TIMEOUT_MAX,
-                                    TIMEOUT_DEFAULT);
+                                    DrumSettings.TIMEOUT_MIN,
+                                    DrumSettings.TIMEOUT_MAX,
+                                    DrumSettings.TIMEOUT_DEFAULT);
         timeoutSlider.setPaintTicks(true);
         timeoutSlider.setPaintLabels(true);
         timeoutSlider.setSnapToTicks(true);
@@ -179,12 +199,48 @@ class GraphDialog extends JDialog {
         timeoutSlider.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 if (!timeoutSlider.getValueIsAdjusting()) {
+                    int value = timeoutSlider.getValue();
+                    DrumSettings ds = getSelectedDrumSettings();
+                    ds.setTimeout(value);
+                    logger.log(Level.INFO, "Sending " + value + " to the " +
+                                           "Arduino as the new threshold " +
+                                           "value for drum " + currentDrum);
                     AceDrums.serialConnection.setTimeout(currentDrum,
-                                                     timeoutSlider.getValue());
+                                                         value);
                     //AceDrums.setTimeout(timeoutSlider.getValue());
                 }
             }
         });
+
+        drumChooser = new JComboBox<DrumSettings>();
+        drumChooser.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                DrumSettings selectedDS = getSelectedDrumSettings();
+                previousDrum = currentDrum;
+                currentDrum = selectedDS.getDrumIndex();//drumChooser.getSelectedIndex();
+                thresholdSlider.setValue(selectedDS.getThreshold());
+                sensitivitySlider.setValue(selectedDS.getSensitivity());
+                timeoutSlider.setValue(selectedDS.getTimeout());
+                AceDrums.serialConnection.requestGraphMode(previousDrum, false);
+                AceDrums.serialConnection.requestGraphMode(currentDrum, true);
+            }
+        });
+        drumChooser.addItem(new DrumSettings("Snare", SNARE,
+                                             DrumSettings.THRESHOLD_DEFAULT,
+                                             DrumSettings.SENSITIVITY_DEFAULT,
+                                             DrumSettings.TIMEOUT_DEFAULT));
+        drumChooser.addItem(new DrumSettings("Kick", KICK,
+                                             DrumSettings.THRESHOLD_DEFAULT,
+                                             DrumSettings.SENSITIVITY_DEFAULT+400,
+                                             DrumSettings.TIMEOUT_DEFAULT));
+        drumChooser.addItem(new DrumSettings("Hi-Hat", HATS,
+                                             DrumSettings.THRESHOLD_DEFAULT,
+                                             DrumSettings.SENSITIVITY_DEFAULT,
+                                             DrumSettings.TIMEOUT_DEFAULT));
+        drumChooser.addItem(new DrumSettings("Rack Tom", RACK_TOM,
+                                             DrumSettings.THRESHOLD_DEFAULT,
+                                             DrumSettings.SENSITIVITY_DEFAULT,
+                                             DrumSettings.TIMEOUT_DEFAULT));
     }
 
     private void addComponentsToContainers() {
@@ -212,19 +268,20 @@ class GraphDialog extends JDialog {
                                      0, 0));
         // Add row 1
         row = addSliderToOptionsPane("Threshold", "% of each stroke velocity",
-                                     thresholdSlider, row, THRESHOLD_MIN + "%",
-                                     THRESHOLD_MAX + "%");
+                                     thresholdSlider, row,
+                                     DrumSettings.THRESHOLD_MIN + "%",
+                                     DrumSettings.THRESHOLD_MAX + "%");
 
         // Add row 2
         row = addSliderToOptionsPane("Sensitivity", "peak input voltage value",
                                      sensitivitySlider, row,
-                                     Integer.toString(SENSITIVITY_MIN),
-                                     Integer.toString(SENSITIVITY_MAX));
+                                     Integer.toString(DrumSettings.SENSITIVITY_MIN),
+                                     Integer.toString(DrumSettings.SENSITIVITY_MAX));
 
         // Add row 3
         row = addSliderToOptionsPane("Timeout", "ms", timeoutSlider, row,
-                                     Integer.toString(TIMEOUT_MIN),
-                                     Integer.toString(TIMEOUT_MAX));
+                                     Integer.toString(DrumSettings.TIMEOUT_MIN),
+                                     Integer.toString(DrumSettings.TIMEOUT_MAX));
 
         // Add row 4
         optionsPane.add(resetButton, new GridBagConstraints(COL_1, row++,
@@ -320,20 +377,20 @@ class GraphDialog extends JDialog {
     private void addWindowListeners() {
         addWindowListener(new WindowListener() {
             public void windowActivated(WindowEvent e) {
-                for (Integer drum : drums) {
-                    AceDrums.serialConnection.requestGraphMode(drum, true);
-                }
+                AceDrums.serialConnection.requestGraphMode(currentDrum, true);
             }
             public void windowClosed(WindowEvent e) { }
             public void windowClosing(WindowEvent e) { }
             public void windowDeactivated(WindowEvent e) {
-                for (Integer drum : drums) {
-                    AceDrums.serialConnection.requestGraphMode(drum, false);
-                }
+                AceDrums.serialConnection.requestGraphMode(currentDrum, true);
             }
             public void windowDeiconified(WindowEvent e) { }
             public void windowIconified(WindowEvent e) { }
             public void windowOpened(WindowEvent e) { }
         });
+    }
+
+    private DrumSettings getSelectedDrumSettings() {
+        return (DrumSettings)drumChooser.getSelectedItem();
     }
 }

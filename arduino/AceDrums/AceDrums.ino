@@ -59,7 +59,7 @@
    kick = new Drum(1, 1, 1, 3);
    kick->addArticulation(MIDIDrumData::right, 36);
    
-   hats = new Drum(3, 4, 1, 3);
+   hats = new Drum(3, 4, 1, 5);
    hats->addArticulation(MIDIDrumData::closed_edge, 22);
    hats->addArticulation(MIDIDrumData::closed_tip, 42);
    hats->addArticulation(MIDIDrumData::tight_edge, 62);
@@ -109,9 +109,9 @@
      drum = drums[i];
      //Serial.println("Got here");
      drum->readNewValue();
-     drum->calculateSlope();
+     //drum->calculateSlope();
      int currentMax = drum->getCurrentMax();
-     if (//drum->getGraphMode() &&
+     if (drum->getGraphMode() &&
          drum->getTimeSinceNonZero() >= 0 &&
          (drum->hasNonZeroValue() || drum->getTimeSinceNonZero() < timeout)) {
        //Serial.println(drum->getCurrentValue());
@@ -121,7 +121,7 @@
      }
      
      if (drum->encounteredLegitStroke()) {
-       drum->updateStrokeValues();
+       //drum->updateStrokeValues();
 
        /*
        Byte 1 = type of signal
@@ -131,12 +131,12 @@
        */
        if (drum->getGraphMode()) {
          byte data[] = {GRAPH_STROKE, drum->getArticulation(),
-                        drum->getCurrentMax(), 1};//snare->getDatumDuration()};
-         //Serial.write(data, 4);
+                        drum->getCurrentMax(), drum->getDatumDuration()};//1};
+         Serial.write(data, 4);
        } else {
          byte data[] = {NORMAL_STROKE, drum->getArticulation(),
                         drum->getCurrentMax(), drum->getDatumDuration()};
-         //Serial.write(data, 4);
+         Serial.write(data, 4);
          //Serial.print("Stroke: ");
          //Serial.println(drum->getCurrentMax());
         }

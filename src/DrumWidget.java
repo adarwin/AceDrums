@@ -118,7 +118,7 @@ public class DrumWidget extends JComponent {
     /**
      * Builds the right click menu
      */
-    protected void buildRightClickMenu(DrumArticulationMap dam) {
+    private void buildRightClickMenu(DrumArticulationMap dam) {
         rightClickMenu = new JPopupMenu();
         JMenuItem drumMenuItem = new JMenuItem("Tweak " + drumName + "...");
         drumMenuItem.addActionListener(new ActionListener() {
@@ -218,7 +218,7 @@ public class DrumWidget extends JComponent {
     /**
      * Adds listeners to this DrumWidget
      */
-    protected void addListeners() {
+    private void addListeners() {
         mouseMotionListener = new MouseMotionListener() {
             public void mouseDragged(MouseEvent e) {
                 int newX = e.getX();
@@ -240,13 +240,13 @@ public class DrumWidget extends JComponent {
                 mouseClickX = e.getX();
                 mouseClickY = e.getY();
                 if (button == 1) {
-                    drumPanel.setSelected(DrumWidget.this, true);//!isSelected());
+                    drumPanel.setSelected(DrumWidget.this, true);
                     AceDrums.reportStroke(midiID, (byte)127);
                 }
             }
             public void mouseReleased(MouseEvent e) {
                 if (e.getButton() == 1) {
-                    drumPanel.setSelected(DrumWidget.this, false);//!isSelected());
+                    drumPanel.setSelected(DrumWidget.this, false);
                 }
             }
         });
@@ -356,7 +356,7 @@ public class DrumWidget extends JComponent {
      * Loads the given image
      * @param imagePath Relative path to a drum image
      */
-    protected void loadImage(String imagePath) {
+    private void loadImage(String imagePath) {
         File imageFile = new File(imagePath);
         try {
            image = ImageIO.read(imageFile);

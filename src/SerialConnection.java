@@ -159,7 +159,8 @@ class SerialConnection {
                                 int currentByte;
                                 while (inputStream.available() > 0) {
                                     currentByte = inputStream.read();
-                                    if (currentByte == GRAPH_STROKE) {
+                                    if (currentByte == GRAPH_STROKE ||
+                                        currentByte == NORMAL_STROKE) {
                                         /*
                                         Read the next 3
                                         Index 0 = articulation / MIDI note
@@ -167,12 +168,14 @@ class SerialConnection {
                                         Index 2 = time since last datum
                                         */
                                         int[] data = readSerialData(inputStream, new int[3], false);
-                                        System.out.println("Adding graph stroke with value: " + data[1]);
+                                        //System.out.println("Adding graph stroke with value: " + data[1]);
                                         AceDrums.reportStroke((byte)data[0],
                                                               (byte)data[1]);
-                                        AceDrums.reportNewDatum(GRAPH_STROKE,
-                                                                data[1],
-                                                                data[2]);
+                                        if (currentByte == GRAPH_STROKE) {
+                                            AceDrums.reportNewDatum(GRAPH_STROKE,
+                                                                    data[1],
+                                                                    data[2]);
+                                        }
                                     } else if (currentByte == GRAPH_DATA) {
                                         /*
                                         Read the next 2
@@ -188,6 +191,7 @@ class SerialConnection {
                                 int[] serialData = readSerialData(inputStream,
                                                                   new int[4], false);
                                 if (serialData[0] == NORMAL_STROKE) {
+                                    logger.log(Level.INFO, "Normal Stroke! :-)");
                                     AceDrums.reportStroke((byte)serialData[1],
                                                           (byte)serialData[2]);
                                 } else if (serialData[0] == GRAPH_STROKE) {
@@ -227,7 +231,8 @@ class SerialConnection {
         }
         return true;
     }
-    private int[] readSerialData(InputStream inputStream, int[] dataTargetArray, boolean zeroIsValid) {
+    private int[] readSerialData(InputStream inputStream,
+                                 int[] dataTargetArray, boolean zeroIsValid) {
         int lastIndex = dataTargetArray.length - 1;
         int dataIndex = 0;
         int currentDatum;
@@ -259,6 +264,7 @@ class SerialConnection {
     }
     SerialConnection() {
         dataRate = 57600;
+        //dataRate = 31250;
         System.out.println("Constructing a serial connection...");
         List<CommPortIdentifier> portList = getPortList();
         // Obtain the correct port identifier

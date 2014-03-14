@@ -8,14 +8,16 @@ Drum::Drum(int primaryPin, int secondaryPin,
              secondaryPin(secondaryPin),
              recentData(new int[dataWindowWidth]), numberOfDataPointsToKeep(dataWindowWidth),
              indexOfCurrentDatum(numberOfDataPointsToKeep-1),
-             currentValue(7), lastValue(0),
-             twoValuesAgo(0), //threshold(5),
+             currentMaxValue(0),
              thresholdPercentage(.30), 
              slope(0), strokeTime(0), previousStrokeTime(0),
              strokeValue(0), previousStrokeValue(0),
              sensitivity(200),
              midiDrumData(new MIDIDrumData(numArticulations)),
-             graphMode(false) {
+             graphMode(false),
+             previousLocalMaximum(0), currentLocalMaximum(0),
+             timeOfPreviousLocalMaximum(0),
+             timeOfCurrentLocalMaximum(0) {
     //recentData[indexOfCurrentDatum] = 100;
 }
 
@@ -41,6 +43,26 @@ int Drum::getCurrentValue() { return recentData[indexOfCurrentDatum]; }
 
 
 byte Drum::getArticulation() {
+  /* Check to see if we're the hi-hat. Note that this is NOT the
+     correct way to do this. The hi-hat should have it's own class */
+  if (secondaryPin == 4) {
+    int openValue = map(analogRead(secondaryPin), 630, 670, 1, 6);
+    //Serial.println(openValue);
+    if (openValue < 1) {
+      return midiDrumData->open_5;
+    } else if (openValue > 6) {
+      return midiDrumData->tight_edge;
+    } else {
+      switch (openValue) {
+        case 1: return midiDrumData->open_5;
+        case 2: return midiDrumData->open_4;
+        case 3: return midiDrumData->open_3;
+        case 4: return midiDrumData->open_2;
+        case 5: return midiDrumData->open_1;
+        case 6: return midiDrumData->closed_edge;
+      }
+    }
+  }
   return midiDrumData->getFirstMIDINote();
 }
 
@@ -52,20 +74,24 @@ bool Drum::addArticulation(byte articulation, byte value) {
 
 
 
-int Drum::getCurrentMax() {
+int Drum::calculateCurrentMaxValue() const {
   int tempMax = 0;
   for (int i = 0; i < numberOfDataPointsToKeep - 1; i++) {
-      if (recentData[i] > currentMax) {
+      if (recentData[i] > tempMax) {
           tempMax = recentData[i];
       }
   }
-  currentMax = tempMax;
-  return currentMax;
+  return tempMax;
   /*
   currentMax = max(twoValuesAgo, lastValue);
   currentMax = max(currentMax, currentValue);
   return currentMax;
   */
+}
+
+
+int Drum::getCurrentMax() const {
+  return currentMaxValue;
 }
 
 
@@ -85,37 +111,59 @@ bool Drum::getGraphMode() const {
 void Drum::readNewValue() {
   reportNewValue(constrain(map(analogRead(primaryPin), 0, sensitivity, 0, 127),
                            0, 127));
-  previousTime = currentTime;
-  currentTime = micros();
+
 }
 
 
 
 void Drum::reportNewValue(int value) {
+  previousTime = currentTime;
+  currentTime = micros();
+  int replacedValue;
   if (indexOfCurrentDatum == numberOfDataPointsToKeep - 1) {
       indexOfCurrentDatum = 0;
+      replacedValue = recentData[indexOfCurrentDatum];
       recentData[indexOfCurrentDatum] = value;
   } else {
-      recentData[++indexOfCurrentDatum] = value;
+      replacedValue = recentData[++indexOfCurrentDatum];
+      recentData[indexOfCurrentDatum] = value;
   }
-  /*
-  if (value > 0) {
-    Serial.print(value);
-    Serial.print(",");
-    Serial.println(indexOfCurrentDatum);
+  // Update current max value
+  updateCurrentMaxValue(replacedValue, value);
+  
+  // Update slopes
+  calculateSlope();
+  
+  // Update local maximum information
+  if (encounteredLocalMaximum()) {
+    timeOfPreviousLocalMaximum = timeOfCurrentLocalMaximum;
+    timeOfCurrentLocalMaximum = currentTime;
+    previousLocalMaximum = currentLocalMaximum;
+    currentLocalMaximum = currentMaxValue;
+    //Serial.print("Set previous local maximum to ");
+    //Serial.println(previousLocalMaximum);
   }
-  */
-  /*
-  twoValuesAgo = lastValue;
-  lastValue = currentValue;
-  currentValue = value;
-  */
+  
   if (value > 0) {
     lastNonZeroTime = currentTime;
   }
   if (getTimeSinceNonZero() > 80000) { // 80000 = 80 ms
     updateStrokeValues();
   }
+}
+
+
+void Drum::updateCurrentMaxValue(int replacedValue, int newValue) {
+  // Calculate current maximum value
+  // First, check to see if we might have just replaced the current maximum
+  if (replacedValue == currentMaxValue) {
+    // Need to recalculate across the whole data structure
+    currentMaxValue = calculateCurrentMaxValue();
+    //Serial.print("Recalculated max to be: ");
+    //Serial.println(currentMaxValue);
+  } else if (newValue > currentMaxValue) {
+    currentMaxValue = newValue;
+  } // else, currentMax was still the max
 }
 
 
@@ -128,7 +176,6 @@ bool Drum::hasNonZeroValue() {
     }
   }
   return output;
-  //return twoValuesAgo > 0 || lastValue > 0 || currentValue > 0;
 }
 
 
@@ -145,11 +192,7 @@ void Drum::setThreshold(double value) {
 
 
 
-/*
-unsigned long Drum::getTimeSinceEnding() {
-  return currentTime - endingTime;
-}
-*/
+
 unsigned long Drum::getTimeSinceNonZero() const {
   return currentTime - lastNonZeroTime;
 }
@@ -170,21 +213,58 @@ bool Drum::signalHasEnded() const {
       }
   }
   return output;
-  //return twoValuesAgo == 0 && lastValue == 0 && currentValue == 0;
 }
 
 
 
 bool Drum::encounteredLegitStroke() {
+  if (encounteredLocalMaximum()) {
+    /* If the previous local maximum happened very recently,
+       this may not be a legit stroke */
+    if (currentTime - timeOfPreviousLocalMaximum < 80000) { // Some engineering constant needs to go here
+      /* Should return true if current maximum is greater than previous maximum */
+      if (currentLocalMaximum > previousLocalMaximum + 5) {
+        /*
+        Serial.print("Higher Maximum Case: ");
+        Serial.print(previousLocalMaximum);
+        Serial.print(" -> ");
+        Serial.println(currentLocalMaximum);
+        */
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      // In this case, the previous maximum was a long time ago, which means this one has to be a legit stroke
+      //Serial.println("Legit stroke because previous local maximum was a long time ago");
+      return true;
+    }
+  } else {
+    return false;
+  }
+  /*
   return recentData[indexOfCurrentDatum] >= strokeValue*thresholdPercentage &&
          previousSlope > 0 &&
          slope <= 0 &&
-         !(currentTime-strokeTime < 0 && currentMax < strokeValue );
+         !(currentTime-strokeTime < 0 && currentMaxValue < strokeValue );
+  */
 }
 
 
 bool Drum::encounteredLocalMaximum() {
-  return true;
+  if (previousSlope > 0 && slope <= 0) {
+    /*
+    Serial.print("Previous Slope: ");
+    Serial.print(previousSlope);
+    Serial.print(", Current Slope: ");
+    Serial.println(slope);
+    */
+    
+    //Serial.println("Local Maximum");
+    return true;
+  } else {
+    return false;
+  }
 }
 
 
@@ -193,7 +273,7 @@ void Drum::updateStrokeValues() {
   previousStrokeTime = strokeTime;
   strokeTime = currentTime;
   previousStrokeValue = strokeValue;
-  strokeValue = currentMax;
+  strokeValue = currentMaxValue;
 }
 
 

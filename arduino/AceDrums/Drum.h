@@ -33,10 +33,9 @@ class Drum {
     Drum(int primaryPin, int secondaryPin,
          byte numArticulations, int dataWindowWidth);
     ~Drum();
-    int currentValue;
     int getCurrentValue();
     int calculateSlope();
-    int getCurrentMax();
+    int getCurrentMax() const;
     void readNewValue();
     void reportNewValue(int);
     bool encounteredLegitStroke();
@@ -45,7 +44,6 @@ class Drum {
     int primaryPin;
     int secondaryPin;
     bool signalHasEnded() const;
-    //unsigned long getTimeSinceEnding();
     unsigned long getTimeSinceNonZero() const;
     unsigned long getDatumDuration() const;
     void setSensitivity(int);
@@ -59,22 +57,21 @@ class Drum {
     int getDataWindowWidth() const;
     
   protected:
-    //int threshold;
     double thresholdPercentage;
     int sensitivity;
     
   private:
+    int calculateCurrentMaxValue() const;
+    void updateCurrentMaxValue(int replacedValue, int newValue);
     MIDIDrumData* midiDrumData;
     unsigned long endingTime;
     unsigned long lastNonZeroTime;
     int* recentData; // Keep this data array as a circular array
     int numberOfDataPointsToKeep;
     int indexOfCurrentDatum;
-    int lastValue;
-    int twoValuesAgo;
     int slope;
     int previousSlope;
-    int currentMax;
+    int currentMaxValue;
     unsigned long currentTime;
     unsigned long previousTime;
     unsigned long strokeTime;
@@ -82,4 +79,8 @@ class Drum {
     int strokeValue;
     int previousStrokeValue;
     bool graphMode;
+    int previousLocalMaximum;
+    int currentLocalMaximum;
+    unsigned long timeOfPreviousLocalMaximum;
+    unsigned long timeOfCurrentLocalMaximum;
 };

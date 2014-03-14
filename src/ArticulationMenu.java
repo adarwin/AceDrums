@@ -7,13 +7,15 @@
 
 package com.adarwin.edrum;
 
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import javax.swing.JMenu;
-import java.util.Set;
-import javax.swing.JCheckBoxMenuItem;
-import java.util.logging.Logger;
+import java.awt.event.ActionListener;
+
 import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.Set;
+
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JMenu;
 
 class ArticulationMenu extends JMenu {
     protected static final Logger logger = Logger.getLogger(
